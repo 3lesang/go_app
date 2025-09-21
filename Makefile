@@ -7,8 +7,6 @@ dev:
 # Build production binary
 build: clean swagger
 	go build -o bin/app main.go
-	upx --best --lzma bin/app
-	@echo "Binary size after UPX compression:"
 	@ls -lh bin/app | awk '{print $$5}'
 
 # Run compiled binary
@@ -23,5 +21,4 @@ clean:
 swagger:
 	go install github.com/swaggo/swag/cmd/swag@latest
 	export PATH=$PATH:$(go env GOPATH)/bin
-
 	swag init
