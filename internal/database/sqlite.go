@@ -1,14 +1,13 @@
-package db
+package database
 
 import (
-	sqlc "app/db/sqlc"
 	"database/sql"
 	"log"
 )
 
 var (
-	DB      *sql.DB
-	Queries *sqlc.Queries
+	DB            *sql.DB
+	SQliteQueries *Queries
 )
 
 func InitDB(filepath string) {
@@ -22,6 +21,6 @@ func InitDB(filepath string) {
 		log.Fatalf("failed to connect db: %v", err)
 	}
 
-	Queries = sqlc.New(DB)
+	SQliteQueries = New(DB)
 	log.Println("Database initialized at", filepath)
 }

@@ -1,8 +1,7 @@
 package user
 
 import (
-	"app/internal/db"
-
+	"app/internal/database"
 	"context"
 
 	"github.com/gofiber/fiber/v2"
@@ -18,7 +17,7 @@ import (
 func GetUsersHandler(c *fiber.Ctx) error {
 	ctx := context.Background()
 
-	users, err := db.Queries.ListUsers(ctx)
+	users, err := database.SQliteQueries.ListUsers(ctx)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
