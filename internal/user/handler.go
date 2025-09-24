@@ -30,3 +30,8 @@ func GetUsersHandler(c *fiber.Ctx) error {
 
 	return c.JSON(data)
 }
+
+func RegisterRoutes(r fiber.Router) {
+	users := r.Group("/users")
+	users.Get("/", GetUsersHandler)
+}

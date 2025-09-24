@@ -4,7 +4,7 @@ import (
 	"log"
 
 	_ "app/docs"
-	"app/routes"
+	"app/internal/router"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -23,7 +23,7 @@ func Serve() {
 		})
 	})
 
-	routes.Register(app)
+	router.Setup(app)
 	log.Println("Server started on port 8080")
 	log.Fatal(app.Listen(":8080"))
 }
