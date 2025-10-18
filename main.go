@@ -14,6 +14,6 @@ import (
 // @in header
 // @name Authorization
 func main() {
-	database.InitDB("./sqlite.db")
+	database.InitDB("./db.sqlite")
 	server.Serve()
 }

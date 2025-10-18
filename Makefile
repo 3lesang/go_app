@@ -2,7 +2,8 @@
 
 # Run app with Air (auto reload + auto swagger gen)
 dev:
-	air
+	go install github.com/air-verse/air@latest
+	$(shell go env GOPATH)/bin/air
 
 # Build production binary
 build: clean swagger
@@ -20,5 +21,4 @@ clean:
 # Generate swagger docs manually
 swagger:
 	go install github.com/swaggo/swag/cmd/swag@latest
-	export PATH=$PATH:$(go env GOPATH)/bin
-	swag init
+	$(shell go env GOPATH)/bin/swag init
