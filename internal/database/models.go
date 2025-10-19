@@ -5,7 +5,10 @@
 package database
 
 type User struct {
-	ID    int64
-	Name  string
-	Email string
+	ID       int64   `json:"id"`
+	Name     string  `json:"name"`
+	Email    *string `json:"email"`
+	Phone    *string `json:"phone"`
+	Username *string `json:"username"`
+	Password string  `json:"password"`
 }

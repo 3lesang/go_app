@@ -22,3 +22,11 @@ clean:
 swagger:
 	go install github.com/swaggo/swag/cmd/swag@latest
 	$(shell go env GOPATH)/bin/swag init
+
+sqlc:
+	go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+	$(shell go env GOPATH)/bin/sqlc
+
+goose:
+	go install github.com/pressly/goose/v3/cmd/goose@latest
+	$(shell go env GOPATH)/bin/goose
