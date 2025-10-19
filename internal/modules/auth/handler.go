@@ -88,7 +88,7 @@ func SignInHandler(c *fiber.Ctx) error {
 // @Tags         auth
 // @Accept       json
 // @Produce      json
-// @Param        signup body SignUpParams true "Sign Up Params"
+// @Param        payload body SignUpParams true "Sign Up Params"
 // @Success      200 {object} map[string]string "{"success": "sign up success"}"
 // @Failure      400 {object} map[string]string "{"error": "invalid request body"}"
 // @Failure      500 {object} map[string]string "{"error": "server error"}"

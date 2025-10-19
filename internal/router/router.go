@@ -1,8 +1,9 @@
 package router
 
 import (
-	"app/internal/auth"
-	"app/internal/user"
+	"app/internal/modules/auth"
+	"app/internal/modules/file"
+	"app/internal/modules/user"
 
 	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
@@ -24,4 +25,10 @@ func Init(app *fiber.App) {
 	userGroup.Post("/", user.CreateUserHandler)
 	userGroup.Delete("/", user.DeleteUsersHandler)
 
+	fileGroup := v1.Group("/files")
+	fileGroup.Use(jwtware.New(jwtware.Config{
+		SigningKey: jwtware.SigningKey{Key: []byte("jwt")},
+	}))
+	fileGroup.Post("/upload", file.UploadFilesHanlder)
+	fileGroup.Delete("/delete", file.DeleteFilesHandler)
 }
