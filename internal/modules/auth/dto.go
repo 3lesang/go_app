@@ -1,11 +1,11 @@
 package auth
 
-type SignInParams struct {
+type LoginRequest struct {
 	Identify string `json:"identify"`
 	Password string `json:"password"`
 }
 
-type SignUpParams struct {
+type RegisterRequest struct {
 	Name     string `json:"name" validate:"required"`
 	Email    string `json:"email" validate:"email"`
 	Phone    string `json:"phone" validate:"required"`

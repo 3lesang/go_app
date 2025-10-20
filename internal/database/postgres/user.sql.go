@@ -12,7 +12,11 @@ import (
 )
 
 const createUser = `-- name: CreateUser :exec
-INSERT INTO users (name, phone, email, password, username) VALUES ($1, $2, $3, $4, $5)
+INSERT INTO users (
+    name, phone, email, password, username
+) VALUES (
+    $1, $2, $3, $4, $5
+)
 `
 
 type CreateUserParams struct {
@@ -35,7 +39,8 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
 }
 
 const deleteUsers = `-- name: DeleteUsers :exec
-DELETE FROM users WHERE id IN ($1)
+DELETE FROM users
+WHERE id IN ($1)
 `
 
 func (q *Queries) DeleteUsers(ctx context.Context, ids []int64) error {
@@ -44,7 +49,9 @@ func (q *Queries) DeleteUsers(ctx context.Context, ids []int64) error {
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, name, username FROM users WHERE id = $1 LIMIT 1
+SELECT id, name, username
+FROM users
+WHERE id = $1 LIMIT 1
 `
 
 type GetUserRow struct {
@@ -61,7 +68,10 @@ func (q *Queries) GetUser(ctx context.Context, id int64) (GetUserRow, error) {
 }
 
 const getUserByIdentify = `-- name: GetUserByIdentify :one
-SELECT id, name, phone, email, username, password FROM users WHERE username = $1 OR email = $2 OR phone = $3 LIMIT 1
+SELECT id, name, phone, email, username, password
+FROM users
+WHERE username = $1 OR email = $2 OR phone = $3
+LIMIT 1
 `
 
 type GetUserByIdentifyParams struct {
@@ -94,7 +104,9 @@ func (q *Queries) GetUserByIdentify(ctx context.Context, arg GetUserByIdentifyPa
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, name, phone, email, username FROM users ORDER BY id
+SELECT id, name, phone, email, username
+FROM users
+ORDER BY id
 `
 
 type ListUsersRow struct {

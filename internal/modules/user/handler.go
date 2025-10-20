@@ -30,9 +30,45 @@ func GetUsersHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(fiber.Map{
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"data": users,
 	})
+}
+
+// GetUserHandler godoc
+// @Summary      Get a user
+// @Description  Returns a user by ID
+// @Tags         users
+// @Security BearerAuth
+// @Produce      json
+// @Param        id   path      int  true  "User ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /users/{id} [get]
+func GetUserHandler(c *fiber.Ctx) error {
+	param := c.Params("id")
+
+	id, err := strconv.ParseInt(param, 10, 64)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid param",
+		})
+	}
+	ctx := context.Background()
+	user, err := database.PGQueries.GetUser(ctx, id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "not found",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(user)
 }
 
 // CreateUserHandler godoc
@@ -128,40 +164,4 @@ func DeleteUsersHandler(c *fiber.Ctx) error {
 		"message": "users deleted successfully",
 		"count":   len(req.IDs),
 	})
-}
-
-// GetUserHandler godoc
-// @Summary      Get a user
-// @Description  Returns a user by ID
-// @Tags         users
-// @Security BearerAuth
-// @Produce      json
-// @Param        id   path      int  true  "User ID"
-// @Success      200  {object}  map[string]interface{}
-// @Failure      400  {object}  map[string]string
-// @Failure      404  {object}  map[string]string
-// @Failure      500  {object}  map[string]string
-// @Router       /users/{id} [get]
-func GetUserHandler(c *fiber.Ctx) error {
-	idParam := c.Params("id")
-
-	id, err := strconv.ParseInt(idParam, 10, 64)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Nnvalid user ID",
-		})
-	}
-	ctx := context.Background()
-	user, err := database.PGQueries.GetUser(ctx, id)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"error": "User not found",
-			})
-		}
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Server error",
-		})
-	}
-	return c.Status(fiber.StatusOK).JSON(user)
 }

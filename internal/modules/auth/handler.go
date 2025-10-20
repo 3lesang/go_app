@@ -13,20 +13,20 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// SignInHandler godoc
-// @Summary      User Sign In
+// LoginHandler godoc
+// @Summary      User login
 // @Description  Authenticates a user using email or username and password.
 // @Tags         auth
 // @Accept       json
 // @Produce      json
-// @Param        payload  body      SignInParams  true  "Sign In parameters"
-// @Success      200  {object}  map[string]interface{}  "Sign in successful"
+// @Param        payload  body      LoginRequest  true  "Login request"
+// @Success      200  {object}  map[string]interface{}  "Login successful"
 // @Failure      400  {object}  map[string]string  "Invalid request"
 // @Failure      401  {object}  map[string]string  "Invalid credentials"
 // @Failure      500  {object}  map[string]string  "Internal server error"
-// @Router       /auth/signin [post]
-func SignInHandler(c *fiber.Ctx) error {
-	var req SignInParams
+// @Router       /auth/login [post]
+func LoginHandler(c *fiber.Ctx) error {
+	var req LoginRequest
 	if err := c.BodyParser(&req); err != nil {
 		c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "invalid request body",
@@ -83,19 +83,19 @@ func SignInHandler(c *fiber.Ctx) error {
 	})
 }
 
-// SignUpHandler godoc
-// @Summary      User Sign Up
+// RegisterHandler godoc
+// @Summary      User register
 // @Description  Register a new user with username, email, and password
 // @Tags         auth
 // @Accept       json
 // @Produce      json
-// @Param        payload body SignUpParams true "Sign Up Params"
-// @Success      200 {object} map[string]string "{"success": "sign up success"}"
+// @Param        payload body RegisterRequest true "Register data"
+// @Success      200 {object} map[string]string "{"success": "Register success"}"
 // @Failure      400 {object} map[string]string "{"error": "invalid request body"}"
 // @Failure      500 {object} map[string]string "{"error": "server error"}"
-// @Router       /auth/signup [post]
-func SignUpHandler(c *fiber.Ctx) error {
-	var req SignUpParams
+// @Router       /auth/register [post]
+func RegisterHandler(c *fiber.Ctx) error {
+	var req RegisterRequest
 
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -131,6 +131,6 @@ func SignUpHandler(c *fiber.Ctx) error {
 		})
 	}
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"suceess": "sign up success",
+		"suceess": "Register success",
 	})
 }

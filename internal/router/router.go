@@ -2,7 +2,7 @@ package router
 
 import (
 	"app/internal/modules/auth"
-	"app/internal/modules/file"
+	"app/internal/modules/product"
 	"app/internal/modules/user"
 
 	jwtware "github.com/gofiber/contrib/jwt"
@@ -13,8 +13,8 @@ func Init(app *fiber.App) {
 	v1 := app.Group("/api/v1")
 
 	authGroup := v1.Group("/auth")
-	authGroup.Post("/signin", auth.SignInHandler)
-	authGroup.Post("/signup", auth.SignUpHandler)
+	authGroup.Post("/login", auth.LoginHandler)
+	authGroup.Post("/register", auth.RegisterHandler)
 
 	userGroup := v1.Group("/users")
 	userGroup.Use(jwtware.New(jwtware.Config{
@@ -25,10 +25,10 @@ func Init(app *fiber.App) {
 	userGroup.Post("/", user.CreateUserHandler)
 	userGroup.Delete("/", user.DeleteUsersHandler)
 
-	fileGroup := v1.Group("/files")
-	fileGroup.Use(jwtware.New(jwtware.Config{
-		SigningKey: jwtware.SigningKey{Key: []byte("jwt")},
-	}))
-	fileGroup.Post("/upload", file.UploadFilesHanlder)
-	fileGroup.Delete("/delete", file.DeleteFilesHandler)
+	productGroup := v1.Group("/products")
+	productGroup.Get("/", product.GetProductsHandler)
+	productGroup.Get("/:id", product.GetProductHandler)
+	productGroup.Post("/", product.CreateProductHandler)
+	productGroup.Put("/:id", product.UpdateProductHandler)
+	productGroup.Delete("/", product.DeleteProductsHandler)
 }

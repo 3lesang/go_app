@@ -8,6 +8,59 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Category struct {
+	ID          int32            `json:"id"`
+	Name        string           `json:"name"`
+	Slug        string           `json:"slug"`
+	Description pgtype.Text      `json:"description"`
+	ParentID    pgtype.Int4      `json:"parent_id"`
+	CreatedAt   pgtype.Timestamp `json:"created_at"`
+	UpdatedAt   pgtype.Timestamp `json:"updated_at"`
+}
+
+type Collection struct {
+	ID              int32            `json:"id"`
+	Name            string           `json:"name"`
+	Slug            string           `json:"slug"`
+	Description     []byte           `json:"description"`
+	ImageUrl        pgtype.Text      `json:"image_url"`
+	IsFeatured      pgtype.Bool      `json:"is_featured"`
+	MetaTitle       pgtype.Text      `json:"meta_title"`
+	MetaDescription pgtype.Text      `json:"meta_description"`
+	MetaKeywords    pgtype.Text      `json:"meta_keywords"`
+	CanonicalUrl    pgtype.Text      `json:"canonical_url"`
+	OgTitle         pgtype.Text      `json:"og_title"`
+	OgDescription   pgtype.Text      `json:"og_description"`
+	OgImage         pgtype.Text      `json:"og_image"`
+	CreatedAt       pgtype.Timestamp `json:"created_at"`
+	UpdatedAt       pgtype.Timestamp `json:"updated_at"`
+}
+
+type Product struct {
+	ID              int64            `json:"id"`
+	Name            string           `json:"name"`
+	Slug            pgtype.Text      `json:"slug"`
+	Description     []byte           `json:"description"`
+	OriginPrice     pgtype.Numeric   `json:"origin_price"`
+	SalePrice       pgtype.Numeric   `json:"sale_price"`
+	Specs           []byte           `json:"specs"`
+	MetaTitle       pgtype.Text      `json:"meta_title"`
+	MetaDescription pgtype.Text      `json:"meta_description"`
+	MetaKeywords    pgtype.Text      `json:"meta_keywords"`
+	CanonicalUrl    pgtype.Text      `json:"canonical_url"`
+	OgTitle         pgtype.Text      `json:"og_title"`
+	OgDescription   pgtype.Text      `json:"og_description"`
+	OgImage         pgtype.Text      `json:"og_image"`
+	CategoryID      pgtype.Int4      `json:"category_id"`
+	CreatedAt       pgtype.Timestamp `json:"created_at"`
+	UpdatedAt       pgtype.Timestamp `json:"updated_at"`
+}
+
+type ProductCollection struct {
+	ProductID    int32 `json:"product_id"`
+	CollectionID int32 `json:"collection_id"`
+}
+
 type User struct {
 	ID       int64       `json:"id"`
 	Name     string      `json:"name"`
