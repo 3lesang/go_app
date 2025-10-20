@@ -1,13 +1,14 @@
 package user
 
 import (
-	"app/internal/database"
+	database "app/internal/database/postgres"
 	"context"
 	"database/sql"
 	"strconv"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5/pgtype"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -22,7 +23,7 @@ import (
 func GetUsersHandler(c *fiber.Ctx) error {
 	ctx := context.Background()
 
-	users, err := database.SQliteQueries.ListUsers(ctx)
+	users, err := database.PGQueries.ListUsers(ctx)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
@@ -71,11 +72,11 @@ func CreateUserHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := database.SQliteQueries.CreateUser(ctx, database.CreateUserParams{
+	if err := database.PGQueries.CreateUser(ctx, database.CreateUserParams{
 		Name:     req.Name,
-		Phone:    &req.Phone,
-		Email:    &req.Email,
-		Username: &req.Username,
+		Phone:    pgtype.Text{String: req.Phone, Valid: true},
+		Email:    pgtype.Text{String: req.Email, Valid: true},
+		Username: pgtype.Text{String: req.Username, Valid: true},
 		Password: string(hash),
 	}); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -118,7 +119,7 @@ func DeleteUsersHandler(c *fiber.Ctx) error {
 	}
 
 	ctx := context.Background()
-	if err := database.SQliteQueries.DeleteUsers(ctx, req.IDs); err != nil {
+	if err := database.PGQueries.DeleteUsers(ctx, req.IDs); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -151,7 +152,7 @@ func GetUserHandler(c *fiber.Ctx) error {
 		})
 	}
 	ctx := context.Background()
-	user, err := database.SQliteQueries.GetUser(ctx, id)
+	user, err := database.PGQueries.GetUser(ctx, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{

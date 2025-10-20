@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"app/internal/database"
+	database "app/internal/database/postgres"
 	"context"
 	"database/sql"
 	"time"
@@ -9,6 +9,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -33,12 +34,12 @@ func SignInHandler(c *fiber.Ctx) error {
 	}
 	ctx := context.Background()
 	params := database.GetUserByIdentifyParams{
-		Username: &req.Identify,
-		Email:    &req.Identify,
-		Phone:    &req.Identify,
+		Username: pgtype.Text{String: req.Identify, Valid: true},
+		Email:    pgtype.Text{String: req.Identify, Valid: true},
+		Phone:    pgtype.Text{String: req.Identify, Valid: true},
 	}
 
-	user, err := database.SQliteQueries.GetUserByIdentify(ctx, params)
+	user, err := database.PGQueries.GetUserByIdentify(ctx, params)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -118,11 +119,11 @@ func SignUpHandler(c *fiber.Ctx) error {
 	}
 
 	ctx := context.Background()
-	if err := database.SQliteQueries.CreateUser(ctx, database.CreateUserParams{
+	if err := database.PGQueries.CreateUser(ctx, database.CreateUserParams{
 		Name:     req.Name,
-		Email:    &req.Email,
-		Phone:    &req.Phone,
-		Username: &req.Username,
+		Email:    pgtype.Text{String: req.Email, Valid: true},
+		Phone:    pgtype.Text{String: req.Phone, Valid: true},
+		Username: pgtype.Text{String: req.Username, Valid: true},
 		Password: string(hash),
 	}); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

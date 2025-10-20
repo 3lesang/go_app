@@ -1,12 +1,12 @@
 version: "2"
 sql:
   - engine: "sqlite"
-    schema: "db/schema.sql"
-    queries: "db/queries"
+    schema: "db/sqlite/schema.sql"
+    queries: "db/sqlite/queries"
     gen:
       go:
         package: "database"
-        out: "internal/database"
+        out: "internal/database/sqlite"
         emit_json_tags: true
         emit_prepared_queries: false
         emit_interface: false
@@ -35,3 +35,12 @@ sql:
             go_type:
               type: "time.Time"
               pointer: true
+  - engine: "postgresql"
+    schema: "db/postgres/schema.sql"
+    queries: "db/postgres/queries"
+    gen:
+      go:
+        package: "database"
+        out: "internal/database/postgres"
+        emit_json_tags: true
+        sql_package: "pgx/v5"

@@ -137,3 +137,7 @@ func DeleteFilesHandler(c *fiber.Ctx) error {
 	minioClient.RemoveObjects(ctx, "go-bucket", objectCh, minio.RemoveObjectsOptions{})
 	return c.SendStatus(fiber.StatusOK)
 }
+
+func GetFilesHandler(c *fiber.Ctx) error {
+	return nil
+}
