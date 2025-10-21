@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 )
 
 var (
@@ -16,15 +17,15 @@ var (
 
 // Init initializes the global pgx pool and sqlc queries
 func Init() {
-	dsn := os.Getenv("DATABASE_URL")
-	if dsn == "" {
-		dsn = "postgres://root:0000@localhost:5432/mydb?sslmode=disable"
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
 	}
-
+	connString := os.Getenv("DATABASE_URL")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	pool, err := pgxpool.New(ctx, dsn)
+	pool, err := pgxpool.New(ctx, connString)
 	if err != nil {
 		log.Fatalf("Unable to connect to database: %v", err)
 	}
