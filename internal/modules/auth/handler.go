@@ -1,7 +1,8 @@
 package auth
 
 import (
-	database "app/internal/database/postgres"
+	"app/internal/db"
+	auth_db "app/internal/db/auth"
 	"context"
 	"database/sql"
 	"time"
@@ -33,13 +34,13 @@ func LoginHandler(c *fiber.Ctx) error {
 		})
 	}
 	ctx := context.Background()
-	params := database.GetUserByIdentifyParams{
+	params := auth_db.GetUserByIdentifyParams{
 		Username: pgtype.Text{String: req.Identify, Valid: true},
 		Email:    pgtype.Text{String: req.Identify, Valid: true},
 		Phone:    pgtype.Text{String: req.Identify, Valid: true},
 	}
 
-	user, err := database.PGQueries.GetUserByIdentify(ctx, params)
+	user, err := db.AuthQueries.GetUserByIdentify(ctx, params)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -47,7 +48,7 @@ func LoginHandler(c *fiber.Ctx) error {
 			})
 		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Server error",
+			"error": err.Error(),
 		})
 	}
 
@@ -119,7 +120,7 @@ func RegisterHandler(c *fiber.Ctx) error {
 	}
 
 	ctx := context.Background()
-	if err := database.PGQueries.CreateUser(ctx, database.CreateUserParams{
+	if err := db.AuthQueries.CreateUser(ctx, auth_db.CreateUserParams{
 		Name:     req.Name,
 		Email:    pgtype.Text{String: req.Email, Valid: true},
 		Phone:    pgtype.Text{String: req.Phone, Valid: true},

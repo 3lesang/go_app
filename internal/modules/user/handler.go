@@ -1,10 +1,11 @@
 package user
 
 import (
-	database "app/internal/database/postgres"
+	"app/internal/db"
+	auth_db "app/internal/db/auth"
 	"context"
+	"crypto/md5"
 	"database/sql"
-	"strconv"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -23,7 +24,7 @@ import (
 func GetUsersHandler(c *fiber.Ctx) error {
 	ctx := context.Background()
 
-	users, err := database.PGQueries.ListUsers(ctx)
+	users, err := db.AuthQueries.ListUsers(ctx)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
@@ -50,14 +51,8 @@ func GetUsersHandler(c *fiber.Ctx) error {
 func GetUserHandler(c *fiber.Ctx) error {
 	param := c.Params("id")
 
-	id, err := strconv.ParseInt(param, 10, 64)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid param",
-		})
-	}
 	ctx := context.Background()
-	user, err := database.PGQueries.GetUser(ctx, id)
+	user, err := db.AuthQueries.GetUser(ctx, pgtype.UUID{Bytes: md5.Sum([]byte(param)), Valid: true})
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -108,7 +103,7 @@ func CreateUserHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := database.PGQueries.CreateUser(ctx, database.CreateUserParams{
+	if err := db.AuthQueries.CreateUser(ctx, auth_db.CreateUserParams{
 		Name:     req.Name,
 		Phone:    pgtype.Text{String: req.Phone, Valid: true},
 		Email:    pgtype.Text{String: req.Email, Valid: true},
@@ -155,7 +150,7 @@ func DeleteUsersHandler(c *fiber.Ctx) error {
 	}
 
 	ctx := context.Background()
-	if err := database.PGQueries.DeleteUsers(ctx, req.IDs); err != nil {
+	if err := db.AuthQueries.DeleteUsers(ctx, req.IDs); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})

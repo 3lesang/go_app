@@ -2,7 +2,7 @@ package main
 
 import (
 	"app/cmd/server"
-	database "app/internal/database/postgres"
+	"app/internal/db"
 )
 
 // @title           Swagger Example API
@@ -14,7 +14,7 @@ import (
 // @in header
 // @name Authorization
 func main() {
-	database.Init()
-	defer database.Pool.Close()
+	db.Init()
+	defer db.Close()
 	server.Serve()
 }

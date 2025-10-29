@@ -3,39 +3,160 @@ definitions:
   auth.LoginRequest:
     properties:
       identify:
+        example: admin
         type: string
       password:
+        example: admin
         type: string
     type: object
   auth.RegisterRequest:
     properties:
       email:
+        example: admin@gmail.com
         type: string
       name:
+        example: Admin
         type: string
       password:
+        example: admin
         type: string
       phone:
+        example: "0984807356"
         type: string
       username:
+        example: admin
         type: string
     required:
     - name
     - password
     - phone
     type: object
-  product.CreateProductRequest:
+  category.CreateCategoryRequest:
     properties:
       name:
         type: string
-      origin_price:
-        type: integer
       slug:
         type: string
     required:
     - name
-    - origin_price
     - slug
+    type: object
+  category.DeleteCategoriesRequest:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
+    type: object
+  category.UpdateCategoryRequest:
+    properties:
+      name:
+        type: string
+      slug:
+        type: string
+    required:
+    - name
+    - slug
+    type: object
+  collection.CreateCollectionRequest:
+    properties:
+      name:
+        type: string
+      slug:
+        type: string
+    required:
+    - name
+    - slug
+    type: object
+  collection.DeleteCollectionsRequest:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
+    type: object
+  collection.UpdateCollectionRequest:
+    properties:
+      name:
+        type: string
+      slug:
+        type: string
+    required:
+    - name
+    - slug
+    type: object
+  product.CreateOptionValue:
+    properties:
+      name:
+        type: string
+    type: object
+  product.CreateOptions:
+    properties:
+      name:
+        type: string
+      values:
+        items:
+          $ref: '#/definitions/product.CreateOptionValue'
+        type: array
+    type: object
+  product.CreateProductRequest:
+    properties:
+      category_id:
+        type: integer
+      collection_ids:
+        items:
+          type: integer
+        type: array
+      files:
+        items:
+          $ref: '#/definitions/product.ProductFiles'
+        type: array
+      meta_description:
+        type: string
+      meta_title:
+        type: string
+      name:
+        type: string
+      options:
+        items:
+          $ref: '#/definitions/product.CreateOptions'
+        type: array
+      origin_price:
+        minimum: 0
+        type: integer
+      sale_price:
+        minimum: 0
+        type: integer
+      slug:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      variants:
+        items:
+          $ref: '#/definitions/product.CreateVariant'
+        type: array
+    required:
+    - name
+    - slug
+    type: object
+  product.CreateVariant:
+    properties:
+      file:
+        type: string
+      options:
+        items:
+          $ref: '#/definitions/product.VariantOption'
+        type: array
+      origin_price:
+        type: integer
+      sale_price:
+        type: integer
+      sku:
+        type: string
+      stock:
+        type: integer
     type: object
   product.DeleteProductsRequest:
     properties:
@@ -44,18 +165,199 @@ definitions:
           type: integer
         type: array
     type: object
-  product.UpdateProductRequest:
+  product.OneProductResponse:
     properties:
+      category_id:
+        type: integer
+      collections: {}
+      files: {}
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      meta_description:
+        type: string
+      meta_title:
+        type: string
       name:
         type: string
+      options:
+        items:
+          $ref: '#/definitions/product.Option'
+        type: array
       origin_price:
+        type: integer
+      sale_price:
         type: integer
       slug:
         type: string
+      tags: {}
+      variants:
+        items:
+          $ref: '#/definitions/product.OneVariant'
+        type: array
+    type: object
+  product.OneVariant:
+    properties:
+      file:
+        type: string
+      id:
+        type: integer
+      options:
+        items:
+          $ref: '#/definitions/product.VariantOption'
+        type: array
+      origin_price:
+        type: integer
+      sale_price:
+        type: integer
+      sku:
+        type: string
+      stock:
+        type: integer
+    type: object
+  product.Option:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      "no":
+        type: integer
+      product_id:
+        type: integer
+      values:
+        items:
+          $ref: '#/definitions/product.OptionValue'
+        type: array
+    type: object
+  product.OptionValue:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      "no":
+        type: integer
+      option_id:
+        type: integer
+    type: object
+  product.PaginatedResponse-any:
+    properties:
+      data:
+        items: {}
+        type: array
+      page:
+        example: 1
+        type: integer
+      page_size:
+        example: 10
+        type: integer
+      total_items:
+        example: 125
+        type: integer
+      total_pages:
+        example: 13
+        type: integer
+    type: object
+  product.ProductFiles:
+    properties:
+      is_primary:
+        type: boolean
+      name:
+        type: string
+      "no":
+        type: integer
+    type: object
+  product.UpdateOptionValue:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  product.UpdateOptions:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      values:
+        items:
+          $ref: '#/definitions/product.UpdateOptionValue'
+        type: array
+    type: object
+  product.UpdateProductRequest:
+    properties:
+      category_id:
+        type: integer
+      collection_ids:
+        items:
+          type: integer
+        type: array
+      files:
+        items:
+          $ref: '#/definitions/product.ProductFiles'
+        type: array
+      meta_description:
+        type: string
+      meta_title:
+        type: string
+      name:
+        type: string
+      options:
+        items:
+          $ref: '#/definitions/product.UpdateOptions'
+        type: array
+      origin_price:
+        minimum: 0
+        type: integer
+      sale_price:
+        minimum: 0
+        type: integer
+      slug:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      variants:
+        items:
+          $ref: '#/definitions/product.UpdateVariants'
+        type: array
     required:
     - name
-    - origin_price
     - slug
+    type: object
+  product.UpdateVariants:
+    properties:
+      file:
+        type: string
+      id:
+        type: integer
+      options:
+        items:
+          $ref: '#/definitions/product.VariantOption'
+        type: array
+      origin_price:
+        type: integer
+      sale_price:
+        type: integer
+      sku:
+        type: string
+      stock:
+        type: integer
+    type: object
+  product.VariantOption:
+    properties:
+      option_id:
+        type: integer
+      option_name:
+        type: string
+      value:
+        type: string
+      value_id:
+        type: integer
     type: object
   user.CreateUserRequest:
     properties:
@@ -165,6 +467,344 @@ paths:
       summary: User register
       tags:
       - auth
+  /categories:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes multiple categories by their IDs
+      parameters:
+      - description: List of IDs
+        in: body
+        name: ids
+        required: true
+        schema:
+          $ref: '#/definitions/category.DeleteCategoriesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete multiple categories
+      tags:
+      - categories
+    get:
+      description: Returns a list of categories
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get category list
+      tags:
+      - categories
+    post:
+      consumes:
+      - application/json
+      description: Creates a new category and returns the created category
+      parameters:
+      - description: Create data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/category.CreateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new category
+      tags:
+      - categories
+  /categories/{id}:
+    get:
+      description: Returns a category by ID
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get a category
+      tags:
+      - categories
+    put:
+      consumes:
+      - application/json
+      description: Updates a category
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/category.UpdateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a category
+      tags:
+      - categories
+  /collections:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes multiple collections by their IDs
+      parameters:
+      - description: List of IDs
+        in: body
+        name: ids
+        required: true
+        schema:
+          $ref: '#/definitions/collection.DeleteCollectionsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete multiple collections
+      tags:
+      - collections
+    get:
+      description: Returns a list of collections
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get collection list
+      tags:
+      - collections
+    post:
+      consumes:
+      - application/json
+      description: Creates a new collection and returns the created collection
+      parameters:
+      - description: Create collection data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/collection.CreateCollectionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new collection
+      tags:
+      - collections
+  /collections/{id}:
+    get:
+      description: Returns a collection by ID
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get a collection
+      tags:
+      - collections
+    put:
+      consumes:
+      - application/json
+      description: Updates a collection
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/collection.UpdateCollectionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a collection
+      tags:
+      - collections
   /products:
     delete:
       consumes:
@@ -204,14 +844,24 @@ paths:
       - products
     get:
       description: Returns a list of products
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/product.PaginatedResponse-any'
       security:
       - BearerAuth: []
       summary: Get product list
@@ -222,9 +872,9 @@ paths:
       - application/json
       description: Creates a new product and returns the created product
       parameters:
-      - description: Product data
+      - description: Create product data
         in: body
-        name: product
+        name: payload
         required: true
         schema:
           $ref: '#/definitions/product.CreateProductRequest'
@@ -268,8 +918,7 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/product.OneProductResponse'
         "400":
           description: Bad Request
           schema:
@@ -303,9 +952,9 @@ paths:
         name: id
         required: true
         type: integer
-      - description: Product data
+      - description: Update product data
         in: body
-        name: product
+        name: payload
         required: true
         schema:
           $ref: '#/definitions/product.UpdateProductRequest'

@@ -2,6 +2,8 @@ package router
 
 import (
 	"app/internal/modules/auth"
+	"app/internal/modules/category"
+	"app/internal/modules/collection"
 	"app/internal/modules/product"
 	"app/internal/modules/user"
 
@@ -31,4 +33,18 @@ func Init(app *fiber.App) {
 	productGroup.Post("/", product.CreateProductHandler)
 	productGroup.Put("/:id", product.UpdateProductHandler)
 	productGroup.Delete("/", product.DeleteProductsHandler)
+
+	categoryGroup := v1.Group("/categories")
+	categoryGroup.Get("/", category.GetCategoriesHandler)
+	categoryGroup.Get("/:id", category.GetCategoryHandler)
+	categoryGroup.Post("/", category.CreateCategoryHandler)
+	categoryGroup.Put("/:id", category.UpdateCategoryHandler)
+	categoryGroup.Delete("/", category.DeleteCategoriesHandler)
+
+	collectionGroup := v1.Group("/collections")
+	collectionGroup.Get("/", collection.GetCollectionsHandler)
+	collectionGroup.Get("/:id", collection.GetCollectionHandler)
+	collectionGroup.Post("/", collection.CreateCollectionHandler)
+	collectionGroup.Put("/:id", collection.UpdateCollectionHandler)
+	collectionGroup.Delete("/", collection.DeleteCollectionsHandler)
 }
