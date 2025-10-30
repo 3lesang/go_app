@@ -20,7 +20,8 @@ SELECT
 FROM
   option_values
 WHERE
-  option_id = ANY ($1::bigint[]);
+  option_id = ANY ($1::bigint[])
+ORDER BY no ASC;
 
 -- name: BulkUpdateOptionValues :exec
 UPDATE option_values AS ov

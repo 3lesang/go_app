@@ -104,6 +104,7 @@ FROM
   option_values
 WHERE
   option_id = ANY ($1::bigint[])
+ORDER BY no ASC
 `
 
 // Get all option values for a list of options

@@ -9,7 +9,8 @@ SELECT
 FROM
   variants
 WHERE
-  product_id = $1;
+  product_id = $1
+ORDER BY no ASC;
 
 -- name: CreateVariant :exec
 INSERT INTO
@@ -19,10 +20,11 @@ INSERT INTO
     file,
     stock,
     sku,
+    no,
     product_id
   )
 VALUES
-  ($1, $2, $3, $4, $5, $6);
+  ($1, $2, $3, $4, $5, $6, $7);
 
 -- name: BulkInsertVariants :many
 INSERT INTO
@@ -32,6 +34,7 @@ INSERT INTO
     file,
     stock,
     sku,
+    no,
     product_id
   )
 SELECT
@@ -40,6 +43,7 @@ SELECT
   unnest(@files::text[]),
   unnest(@stocks::int[]),
   unnest(@skus::text[]),
+  unnest(@nos::int[]),
   unnest(@product_ids::bigint[])
 RETURNING
   id;

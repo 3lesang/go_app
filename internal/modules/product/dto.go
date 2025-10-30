@@ -63,6 +63,7 @@ type CreateVariant struct {
 	Stock       int32           `json:"stock"`
 	Sku         string          `json:"sku"`
 	File        string          `json:"file"`
+	No          int32           `json:"no"`
 	Options     []VariantOption `json:"options"`
 }
 

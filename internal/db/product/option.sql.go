@@ -111,6 +111,7 @@ FROM
   options
 WHERE
   product_id = $1
+ORDER BY no ASC
 `
 
 type GetOptionsByProductIDRow struct {

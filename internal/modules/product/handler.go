@@ -5,6 +5,8 @@ import (
 	product_db "app/internal/db/product"
 	"context"
 	"database/sql"
+	"encoding/json"
+	"fmt"
 	"math"
 	"strconv"
 
@@ -292,12 +294,13 @@ func CreateProductHandler(c *fiber.Ctx) error {
 
 		variantParams := product_db.BulkInsertVariantsParams{}
 
-		for _, v := range req.Variants {
+		for i, v := range req.Variants {
 			variantParams.OriginPrices = append(variantParams.OriginPrices, v.OriginPrice)
 			variantParams.SalePrices = append(variantParams.SalePrices, v.SalePrice)
 			variantParams.Files = append(variantParams.Files, v.File)
 			variantParams.Stocks = append(variantParams.Stocks, v.Stock)
 			variantParams.Skus = append(variantParams.Skus, v.Sku)
+			variantParams.Nos = append(variantParams.Nos, int32(i))
 			variantParams.ProductIds = append(variantParams.ProductIds, productID)
 		}
 
@@ -555,6 +558,7 @@ func UpdateProductHandler(c *fiber.Ctx) error {
 		variantIDs := []int64{}
 		createVariantOptionParams := product_db.BulkInsertVariantOptionParams{}
 		vIdxs := []int{}
+		deleteVariantOptionParams := product_db.DeleteVariantOptionsNotInIDsParams{}
 		for i, v := range req.Variants {
 			if v.ID == 0 {
 				vIdxs = append(vIdxs, i)
@@ -563,12 +567,18 @@ func UpdateProductHandler(c *fiber.Ctx) error {
 				createVariantParams.SalePrices = append(createVariantParams.SalePrices, v.SalePrice)
 				createVariantParams.Stocks = append(createVariantParams.Stocks, v.Stock)
 				createVariantParams.Skus = append(createVariantParams.Skus, v.Sku)
+				createVariantParams.Nos = append(createVariantParams.Nos, int32(i))
 				createVariantParams.ProductIds = append(createVariantParams.ProductIds, id)
 				continue
 			}
 			variantIDs = append(variantIDs, v.ID)
 
 			for _, vo := range v.Options {
+				if vo.ValueID != 0 {
+					deleteVariantOptionParams.OptionValueIds = append(deleteVariantOptionParams.OptionValueIds, vo.OptionID)
+					deleteVariantOptionParams.VariantIds = append(deleteVariantOptionParams.VariantIds, vo.ValueID)
+				}
+
 				optionID := optIdsMap[vo.OptionName]
 				valueID := optionValueIDMap[optionID][vo.Value]
 				createVariantOptionParams.OptionIds = append(createVariantOptionParams.OptionIds, optionID)
@@ -587,7 +597,7 @@ func UpdateProductHandler(c *fiber.Ctx) error {
 			Ids:       variantIDs,
 			ProductID: id,
 		})
-
+		db.ProductQueries.DeleteVariantOptionsNotInIDs(ctx, deleteVariantOptionParams)
 		db.ProductQueries.BulkUpdateVariants(ctx, updateVariantParams)
 		db.ProductQueries.BulkInsertVariantOption(ctx, createVariantOptionParams)
 		vdbIDs, _ := db.ProductQueries.BulkInsertVariants(ctx, createVariantParams)
@@ -595,25 +605,35 @@ func UpdateProductHandler(c *fiber.Ctx) error {
 		createVariantOptionParams = product_db.BulkInsertVariantOptionParams{}
 
 		for vIdx, v := range req.Variants {
-			if v.ID != 0 {
-				continue
-			}
-			var tmpIdx int
-			for i, v := range vIdxs {
-				if v == vIdx {
-					tmpIdx = i
-					break
+			variantID := v.ID
+			if variantID == 0 {
+				var tmpIdx int
+				for i, v := range vIdxs {
+					if v == vIdx {
+						tmpIdx = i
+						break
+					}
 				}
+				variantID = int64(vdbIDs[tmpIdx])
 			}
-			variantID := int64(vdbIDs[tmpIdx])
+
 			for _, opt := range v.Options {
-				optionID := optIdsMap[opt.OptionName]
+				if opt.ValueID != 0 {
+					continue
+				}
+				optionID := opt.OptionID
+				if optionID == 0 {
+					optionID = optIdsMap[opt.OptionName]
+				}
 				valueID := optionValueIDMap[optionID][opt.Value]
 				createVariantOptionParams.VariantIds = append(createVariantOptionParams.VariantIds, variantID)
 				createVariantOptionParams.OptionIds = append(createVariantOptionParams.OptionIds, optionID)
 				createVariantOptionParams.OptionValueIds = append(createVariantOptionParams.OptionValueIds, valueID)
 			}
 		}
+
+		jsonData, _ := json.MarshalIndent(createVariantOptionParams, "", "  ")
+		fmt.Println(string(jsonData))
 
 		db.ProductQueries.BulkInsertVariantOption(ctx, createVariantOptionParams)
 	}

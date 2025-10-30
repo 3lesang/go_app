@@ -139,6 +139,7 @@ type Variant struct {
 	File        pgtype.Text `json:"file"`
 	Stock       int32       `json:"stock"`
 	Sku         string      `json:"sku"`
+	No          int32       `json:"no"`
 	ProductID   int64       `json:"product_id"`
 }
 

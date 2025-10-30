@@ -29,6 +29,22 @@ func (q *Queries) BulkInsertVariantOption(ctx context.Context, arg BulkInsertVar
 	return err
 }
 
+const deleteVariantOptionsNotInIDs = `-- name: DeleteVariantOptionsNotInIDs :exec
+DELETE FROM variant_options
+WHERE variant_id IN (SELECT UNNEST($1::bigint[])) 
+  AND option_value_id NOT IN (SELECT UNNEST($2::bigint[]))
+`
+
+type DeleteVariantOptionsNotInIDsParams struct {
+	VariantIds     []int64 `json:"variant_ids"`
+	OptionValueIds []int64 `json:"option_value_ids"`
+}
+
+func (q *Queries) DeleteVariantOptionsNotInIDs(ctx context.Context, arg DeleteVariantOptionsNotInIDsParams) error {
+	_, err := q.db.Exec(ctx, deleteVariantOptionsNotInIDs, arg.VariantIds, arg.OptionValueIds)
+	return err
+}
+
 const getVariantOptionsByVariantIDs = `-- name: GetVariantOptionsByVariantIDs :many
 SELECT
   vo.variant_id,

@@ -14,7 +14,9 @@ SELECT
 FROM
   options
 WHERE
-  product_id = $1;
+  product_id = $1
+ORDER BY no ASC;
+
 -- name: DeleteOptionsByProductID :exec
 DELETE FROM
   options

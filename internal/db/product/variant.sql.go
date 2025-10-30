@@ -19,6 +19,7 @@ INSERT INTO
     file,
     stock,
     sku,
+    no,
     product_id
   )
 SELECT
@@ -27,7 +28,8 @@ SELECT
   unnest($3::text[]),
   unnest($4::int[]),
   unnest($5::text[]),
-  unnest($6::bigint[])
+  unnest($6::int[]),
+  unnest($7::bigint[])
 RETURNING
   id
 `
@@ -38,6 +40,7 @@ type BulkInsertVariantsParams struct {
 	Files        []string `json:"files"`
 	Stocks       []int32  `json:"stocks"`
 	Skus         []string `json:"skus"`
+	Nos          []int32  `json:"nos"`
 	ProductIds   []int64  `json:"product_ids"`
 }
 
@@ -48,6 +51,7 @@ func (q *Queries) BulkInsertVariants(ctx context.Context, arg BulkInsertVariants
 		arg.Files,
 		arg.Stocks,
 		arg.Skus,
+		arg.Nos,
 		arg.ProductIds,
 	)
 	if err != nil {
@@ -124,10 +128,11 @@ INSERT INTO
     file,
     stock,
     sku,
+    no,
     product_id
   )
 VALUES
-  ($1, $2, $3, $4, $5, $6)
+  ($1, $2, $3, $4, $5, $6, $7)
 `
 
 type CreateVariantParams struct {
@@ -136,6 +141,7 @@ type CreateVariantParams struct {
 	File        pgtype.Text `json:"file"`
 	Stock       int32       `json:"stock"`
 	Sku         string      `json:"sku"`
+	No          int32       `json:"no"`
 	ProductID   int64       `json:"product_id"`
 }
 
@@ -146,6 +152,7 @@ func (q *Queries) CreateVariant(ctx context.Context, arg CreateVariantParams) er
 		arg.File,
 		arg.Stock,
 		arg.Sku,
+		arg.No,
 		arg.ProductID,
 	)
 	return err
@@ -190,6 +197,7 @@ FROM
   variants
 WHERE
   product_id = $1
+ORDER BY no ASC
 `
 
 type GetVariantsByProductIDRow struct {

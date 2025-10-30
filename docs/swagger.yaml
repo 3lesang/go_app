@@ -145,6 +145,8 @@ definitions:
     properties:
       file:
         type: string
+      "no":
+        type: integer
       options:
         items:
           $ref: '#/definitions/product.VariantOption'

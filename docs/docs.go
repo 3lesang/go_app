@@ -1352,6 +1352,9 @@ const docTemplate = `{
                 "file": {
                     "type": "string"
                 },
+                "no": {
+                    "type": "integer"
+                },
                 "options": {
                     "type": "array",
                     "items": {
