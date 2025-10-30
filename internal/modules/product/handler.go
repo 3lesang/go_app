@@ -604,6 +604,9 @@ func UpdateProductHandler(c *fiber.Ctx) error {
 
 		createVariantOptionParams = product_db.BulkInsertVariantOptionParams{}
 
+		jsonData, _ := json.MarshalIndent(req.Variants, "", "  ")
+		fmt.Println(string(jsonData))
+
 		for vIdx, v := range req.Variants {
 			variantID := v.ID
 			if variantID == 0 {
@@ -618,21 +621,24 @@ func UpdateProductHandler(c *fiber.Ctx) error {
 			}
 
 			for _, opt := range v.Options {
-				if opt.ValueID != 0 {
+				if v.ID != 0 && opt.ValueID != 0 {
 					continue
 				}
 				optionID := opt.OptionID
+				valueID := opt.ValueID
 				if optionID == 0 {
 					optionID = optIdsMap[opt.OptionName]
 				}
-				valueID := optionValueIDMap[optionID][opt.Value]
+				if valueID == 0 {
+					valueID = optionValueIDMap[optionID][opt.Value]
+				}
 				createVariantOptionParams.VariantIds = append(createVariantOptionParams.VariantIds, variantID)
 				createVariantOptionParams.OptionIds = append(createVariantOptionParams.OptionIds, optionID)
 				createVariantOptionParams.OptionValueIds = append(createVariantOptionParams.OptionValueIds, valueID)
 			}
 		}
 
-		jsonData, _ := json.MarshalIndent(createVariantOptionParams, "", "  ")
+		jsonData, _ = json.MarshalIndent(createVariantOptionParams, "", "  ")
 		fmt.Println(string(jsonData))
 
 		db.ProductQueries.BulkInsertVariantOption(ctx, createVariantOptionParams)
