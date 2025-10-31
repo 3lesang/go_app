@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // GetCollectionsHandler godoc
@@ -65,10 +66,16 @@ func GetCollectionHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"id":   result.ID,
-		"name": result.Name,
-		"slug": result.Slug,
+	products, err := db.ProductQueries.GetProductsByCollectionID(ctx, result.ID)
+
+	return c.Status(fiber.StatusOK).JSON(CollectionResponse{
+		ID:              result.ID,
+		File:            result.File.String,
+		Name:            result.Name,
+		Slug:            result.Slug,
+		MetaTitle:       result.MetaTitle.String,
+		MetaDescription: result.MetaDescription.String,
+		Products:        products,
 	})
 }
 
@@ -104,15 +111,31 @@ func CreateCollectionHandler(c *fiber.Ctx) error {
 	params := product_db.CreateCollectionParams{
 		Name: req.Name,
 		Slug: req.Slug,
+		Layout: pgtype.Text{
+			String: req.Layout,
+			Valid:  true,
+		},
+		File:      pgtype.Text{String: req.File, Valid: req.File != ""},
+		MetaTitle: pgtype.Text{String: req.MetaTitle, Valid: true},
+		MetaDescription: pgtype.Text{
+			String: req.MetaDescription,
+			Valid:  true,
+		},
 	}
-	if err := db.ProductQueries.CreateCollection(ctx, params); err != nil {
+	collectionID, err := db.ProductQueries.CreateCollection(ctx, params)
+	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"success": "Create successfully",
-	})
+	createProductCollectionParams := product_db.BulkInsertProductCollectionParams{}
+
+	for _, id := range req.ProductIDs {
+		createProductCollectionParams.CollectionIds = append(createProductCollectionParams.CollectionIds, collectionID)
+		createProductCollectionParams.ProductIds = append(createProductCollectionParams.ProductIds, id)
+	}
+	db.ProductQueries.BulkInsertProductCollection(ctx, createProductCollectionParams)
+	return c.SendStatus(fiber.StatusCreated)
 }
 
 // UpdateCollectionHandler godoc
@@ -155,6 +178,7 @@ func UpdateCollectionHandler(c *fiber.Ctx) error {
 		ID:   id,
 		Name: req.Name,
 		Slug: req.Slug,
+		File: pgtype.Text{String: req.File, Valid: true},
 	}
 	if err := db.ProductQueries.UpdateCollection(ctx, params); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -162,6 +186,15 @@ func UpdateCollectionHandler(c *fiber.Ctx) error {
 		})
 	}
 
+	insertCollectionProductParams := product_db.BulkInsertProductCollectionParams{}
+
+	for _, pid := range req.ProductIDs {
+		insertCollectionProductParams.CollectionIds = append(insertCollectionProductParams.CollectionIds, id)
+		insertCollectionProductParams.ProductIds = append(insertCollectionProductParams.ProductIds, pid)
+	}
+
+	db.ProductQueries.DeleteProductsByCollectionID(ctx, id)
+	db.ProductQueries.BulkInsertProductCollection(ctx, insertCollectionProductParams)
 	return c.SendStatus(fiber.StatusOK)
 }
 

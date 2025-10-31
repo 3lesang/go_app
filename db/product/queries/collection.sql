@@ -2,6 +2,7 @@
 SELECT
   id,
   name,
+  file,
   slug
 FROM
   collections
@@ -13,7 +14,7 @@ SELECT
   id,
   name,
   slug,
-  image_url,
+  file,
   meta_title,
   meta_description,
   layout
@@ -24,18 +25,19 @@ WHERE
 LIMIT
   1;
 
--- name: CreateCollection :exec
+-- name: CreateCollection :one
 INSERT INTO
   collections (
     name,
     slug,
     meta_title,
     meta_description,
-    image_url,
+    file,
     layout
   )
 VALUES
-  ($1, $2, $3, $4, $5, $6);
+  ($1, $2, $3, $4, $5, $6)
+RETURNING id;
 
 -- name: UpdateCollection :exec
 UPDATE collections
@@ -44,7 +46,7 @@ SET
   slug = $3,
   meta_title = $4,
   meta_description = $5,
-  image_url = $6,
+  file = $6,
   layout = $7
 WHERE
   id = $1;

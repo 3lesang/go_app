@@ -60,8 +60,22 @@ definitions:
     type: object
   collection.CreateCollectionRequest:
     properties:
+      conditions:
+        type: string
+      file:
+        type: string
+      layout:
+        type: string
+      meta_decscription:
+        type: string
+      meta_title:
+        type: string
       name:
         type: string
+      product_ids:
+        items:
+          type: integer
+        type: array
       slug:
         type: string
     required:
@@ -77,8 +91,22 @@ definitions:
     type: object
   collection.UpdateCollectionRequest:
     properties:
+      conditions:
+        type: string
+      file:
+        type: string
+      layout:
+        type: string
+      meta_decscription:
+        type: string
+      meta_title:
+        type: string
       name:
         type: string
+      product_ids:
+        items:
+          type: integer
+        type: array
       slug:
         type: string
     required:

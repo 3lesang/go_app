@@ -12,11 +12,11 @@ import (
 )
 
 const bulkInsertProductCollection = `-- name: BulkInsertProductCollection :exec
-INSERT INTO
-  product_collections (product_id, collection_id)
-SELECT
-  unnest($1::bigint[]),
-  unnest($2::bigint[])
+INSERT INTO product_collections (product_id, collection_id)
+SELECT p.id, c.id
+FROM unnest($1::bigint[]) AS p(id),
+     unnest($2::bigint[]) AS c(id)
+ON CONFLICT (product_id, collection_id) DO NOTHING
 `
 
 type BulkInsertProductCollectionParams struct {
@@ -29,12 +29,37 @@ func (q *Queries) BulkInsertProductCollection(ctx context.Context, arg BulkInser
 	return err
 }
 
-const deleteProductCollections = `-- name: DeleteProductCollections :exec
+const deleteCollectionProductsNotInIDsByCollection = `-- name: DeleteCollectionProductsNotInIDsByCollection :exec
+DELETE FROM product_collections
+WHERE collection_id IN (SELECT UNNEST($1::bigint[])) 
+  AND product_id NOT IN (SELECT UNNEST($2::bigint[]))
+`
+
+type DeleteCollectionProductsNotInIDsByCollectionParams struct {
+	CollectionIds []int64 `json:"collection_ids"`
+	ProductIds    []int64 `json:"product_ids"`
+}
+
+func (q *Queries) DeleteCollectionProductsNotInIDsByCollection(ctx context.Context, arg DeleteCollectionProductsNotInIDsByCollectionParams) error {
+	_, err := q.db.Exec(ctx, deleteCollectionProductsNotInIDsByCollection, arg.CollectionIds, arg.ProductIds)
+	return err
+}
+
+const deleteCollectionsByProductID = `-- name: DeleteCollectionsByProductID :exec
 DELETE FROM product_collections WHERE product_id = $1
 `
 
-func (q *Queries) DeleteProductCollections(ctx context.Context, productID int64) error {
-	_, err := q.db.Exec(ctx, deleteProductCollections, productID)
+func (q *Queries) DeleteCollectionsByProductID(ctx context.Context, productID int64) error {
+	_, err := q.db.Exec(ctx, deleteCollectionsByProductID, productID)
+	return err
+}
+
+const deleteProductsByCollectionID = `-- name: DeleteProductsByCollectionID :exec
+DELETE FROM product_collections WHERE collection_id = $1
+`
+
+func (q *Queries) DeleteProductsByCollectionID(ctx context.Context, collectionID int64) error {
+	_, err := q.db.Exec(ctx, deleteProductsByCollectionID, collectionID)
 	return err
 }
 
@@ -63,6 +88,41 @@ func (q *Queries) GetCollectionsByProductID(ctx context.Context, productID int64
 	var items []GetCollectionsByProductIDRow
 	for rows.Next() {
 		var i GetCollectionsByProductIDRow
+		if err := rows.Scan(&i.ID, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getProductsByCollectionID = `-- name: GetProductsByCollectionID :many
+SELECT 
+  p.id,
+  p.name
+FROM
+  product_collections pc
+  LEFT JOIN products p ON pc.product_id = p.id
+WHERE collection_id = $1
+`
+
+type GetProductsByCollectionIDRow struct {
+	ID   pgtype.Int8 `json:"id"`
+	Name pgtype.Text `json:"name"`
+}
+
+func (q *Queries) GetProductsByCollectionID(ctx context.Context, collectionID int64) ([]GetProductsByCollectionIDRow, error) {
+	rows, err := q.db.Query(ctx, getProductsByCollectionID, collectionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetProductsByCollectionIDRow
+	for rows.Next() {
+		var i GetProductsByCollectionIDRow
 		if err := rows.Scan(&i.ID, &i.Name); err != nil {
 			return nil, err
 		}

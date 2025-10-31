@@ -22,18 +22,19 @@ func (q *Queries) BulkDeleteCollections(ctx context.Context, dollar_1 []int64) e
 	return err
 }
 
-const createCollection = `-- name: CreateCollection :exec
+const createCollection = `-- name: CreateCollection :one
 INSERT INTO
   collections (
     name,
     slug,
     meta_title,
     meta_description,
-    image_url,
+    file,
     layout
   )
 VALUES
   ($1, $2, $3, $4, $5, $6)
+RETURNING id
 `
 
 type CreateCollectionParams struct {
@@ -41,20 +42,22 @@ type CreateCollectionParams struct {
 	Slug            string      `json:"slug"`
 	MetaTitle       pgtype.Text `json:"meta_title"`
 	MetaDescription pgtype.Text `json:"meta_description"`
-	ImageUrl        pgtype.Text `json:"image_url"`
+	File            pgtype.Text `json:"file"`
 	Layout          pgtype.Text `json:"layout"`
 }
 
-func (q *Queries) CreateCollection(ctx context.Context, arg CreateCollectionParams) error {
-	_, err := q.db.Exec(ctx, createCollection,
+func (q *Queries) CreateCollection(ctx context.Context, arg CreateCollectionParams) (int64, error) {
+	row := q.db.QueryRow(ctx, createCollection,
 		arg.Name,
 		arg.Slug,
 		arg.MetaTitle,
 		arg.MetaDescription,
-		arg.ImageUrl,
+		arg.File,
 		arg.Layout,
 	)
-	return err
+	var id int64
+	err := row.Scan(&id)
+	return id, err
 }
 
 const getCollection = `-- name: GetCollection :one
@@ -62,7 +65,7 @@ SELECT
   id,
   name,
   slug,
-  image_url,
+  file,
   meta_title,
   meta_description,
   layout
@@ -78,7 +81,7 @@ type GetCollectionRow struct {
 	ID              int64       `json:"id"`
 	Name            string      `json:"name"`
 	Slug            string      `json:"slug"`
-	ImageUrl        pgtype.Text `json:"image_url"`
+	File            pgtype.Text `json:"file"`
 	MetaTitle       pgtype.Text `json:"meta_title"`
 	MetaDescription pgtype.Text `json:"meta_description"`
 	Layout          pgtype.Text `json:"layout"`
@@ -91,7 +94,7 @@ func (q *Queries) GetCollection(ctx context.Context, id int64) (GetCollectionRow
 		&i.ID,
 		&i.Name,
 		&i.Slug,
-		&i.ImageUrl,
+		&i.File,
 		&i.MetaTitle,
 		&i.MetaDescription,
 		&i.Layout,
@@ -103,6 +106,7 @@ const getCollections = `-- name: GetCollections :many
 SELECT
   id,
   name,
+  file,
   slug
 FROM
   collections
@@ -111,9 +115,10 @@ ORDER BY
 `
 
 type GetCollectionsRow struct {
-	ID   int64  `json:"id"`
-	Name string `json:"name"`
-	Slug string `json:"slug"`
+	ID   int64       `json:"id"`
+	Name string      `json:"name"`
+	File pgtype.Text `json:"file"`
+	Slug string      `json:"slug"`
 }
 
 func (q *Queries) GetCollections(ctx context.Context) ([]GetCollectionsRow, error) {
@@ -125,7 +130,12 @@ func (q *Queries) GetCollections(ctx context.Context) ([]GetCollectionsRow, erro
 	var items []GetCollectionsRow
 	for rows.Next() {
 		var i GetCollectionsRow
-		if err := rows.Scan(&i.ID, &i.Name, &i.Slug); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.File,
+			&i.Slug,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -143,7 +153,7 @@ SET
   slug = $3,
   meta_title = $4,
   meta_description = $5,
-  image_url = $6,
+  file = $6,
   layout = $7
 WHERE
   id = $1
@@ -155,7 +165,7 @@ type UpdateCollectionParams struct {
 	Slug            string      `json:"slug"`
 	MetaTitle       pgtype.Text `json:"meta_title"`
 	MetaDescription pgtype.Text `json:"meta_description"`
-	ImageUrl        pgtype.Text `json:"image_url"`
+	File            pgtype.Text `json:"file"`
 	Layout          pgtype.Text `json:"layout"`
 }
 
@@ -166,7 +176,7 @@ func (q *Queries) UpdateCollection(ctx context.Context, arg UpdateCollectionPara
 		arg.Slug,
 		arg.MetaTitle,
 		arg.MetaDescription,
-		arg.ImageUrl,
+		arg.File,
 		arg.Layout,
 	)
 	return err

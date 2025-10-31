@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS collections (
   id BIGSERIAL PRIMARY KEY,
   name TEXT NOT NULL,
   slug TEXT UNIQUE NOT NULL,
-  image_url TEXT,
+  file TEXT,
   is_featured BOOLEAN DEFAULT FALSE,
   meta_title TEXT,
   meta_description TEXT,

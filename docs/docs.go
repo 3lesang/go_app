@@ -1228,8 +1228,29 @@ const docTemplate = `{
                 "slug"
             ],
             "properties": {
+                "conditions": {
+                    "type": "string"
+                },
+                "file": {
+                    "type": "string"
+                },
+                "layout": {
+                    "type": "string"
+                },
+                "meta_decscription": {
+                    "type": "string"
+                },
+                "meta_title": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
+                },
+                "product_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 },
                 "slug": {
                     "type": "string"
@@ -1254,8 +1275,29 @@ const docTemplate = `{
                 "slug"
             ],
             "properties": {
+                "conditions": {
+                    "type": "string"
+                },
+                "file": {
+                    "type": "string"
+                },
+                "layout": {
+                    "type": "string"
+                },
+                "meta_decscription": {
+                    "type": "string"
+                },
+                "meta_title": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
+                },
+                "product_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 },
                 "slug": {
                     "type": "string"

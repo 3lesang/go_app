@@ -360,7 +360,7 @@ func CreateProductHandler(c *fiber.Ctx) error {
 // @Router       /products/{id} [put]
 func UpdateProductHandler(c *fiber.Ctx) error {
 	param := c.Params("id")
-	id, err := strconv.ParseInt(param, 10, 64)
+	productID, err := strconv.ParseInt(param, 10, 64)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid param",
@@ -381,7 +381,7 @@ func UpdateProductHandler(c *fiber.Ctx) error {
 	}
 	ctx := context.Background()
 	params := product_db.UpdateProductParams{
-		ID:              id,
+		ID:              productID,
 		Name:            req.Name,
 		Slug:            req.Slug,
 		OriginPrice:     req.OriginPrice,
@@ -396,7 +396,7 @@ func UpdateProductHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := db.ProductQueries.DeleteProductFiles(ctx, id); err != nil {
+	if err := db.ProductQueries.DeleteProductFiles(ctx, productID); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -407,7 +407,7 @@ func UpdateProductHandler(c *fiber.Ctx) error {
 			fileParams.Names = append(fileParams.Names, f.Name)
 			fileParams.IsPrimaries = append(fileParams.IsPrimaries, f.IsPrimary)
 			fileParams.Nos = append(fileParams.Nos, f.No)
-			fileParams.ProductIds = append(fileParams.ProductIds, id)
+			fileParams.ProductIds = append(fileParams.ProductIds, productID)
 		}
 		if err := db.ProductQueries.BulkInsertProductFiles(ctx, fileParams); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -416,7 +416,7 @@ func UpdateProductHandler(c *fiber.Ctx) error {
 		}
 	}
 
-	if err := db.ProductQueries.DeleteProductTags(ctx, id); err != nil {
+	if err := db.ProductQueries.DeleteProductTags(ctx, productID); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -426,7 +426,7 @@ func UpdateProductHandler(c *fiber.Ctx) error {
 		tagParams := product_db.BulkInsertProductTagsParams{}
 		for _, t := range req.Tags {
 			tagParams.Names = append(tagParams.Names, t)
-			tagParams.ProductIds = append(tagParams.ProductIds, id)
+			tagParams.ProductIds = append(tagParams.ProductIds, productID)
 		}
 		if err := db.ProductQueries.BulkInsertProductTags(ctx, tagParams); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -435,7 +435,7 @@ func UpdateProductHandler(c *fiber.Ctx) error {
 		}
 	}
 
-	if err := db.ProductQueries.DeleteProductCollections(ctx, id); err != nil {
+	if err := db.ProductQueries.DeleteCollectionsByProductID(ctx, productID); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -445,7 +445,7 @@ func UpdateProductHandler(c *fiber.Ctx) error {
 		collectionParams := product_db.BulkInsertProductCollectionParams{}
 		for _, collectionID := range req.CollectionIDs {
 			collectionParams.CollectionIds = append(collectionParams.CollectionIds, collectionID)
-			collectionParams.ProductIds = append(collectionParams.ProductIds, id)
+			collectionParams.ProductIds = append(collectionParams.ProductIds, productID)
 		}
 		if err = db.ProductQueries.BulkInsertProductCollection(ctx, collectionParams); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -490,7 +490,7 @@ func UpdateProductHandler(c *fiber.Ctx) error {
 		}
 
 		if len(optionIDs) > 0 {
-			db.ProductQueries.DeleteOptionsNotInIDs(ctx, product_db.DeleteOptionsNotInIDsParams{ProductID: id, Ids: productOptIds})
+			db.ProductQueries.DeleteOptionsNotInIDs(ctx, product_db.DeleteOptionsNotInIDsParams{ProductID: productID, Ids: productOptIds})
 		}
 		if len(valueIDs) > 0 {
 			db.ProductQueries.DeleteOptionValuesNotInIDs(ctx, product_db.DeleteOptionValuesNotInIDsParams{
@@ -517,7 +517,7 @@ func UpdateProductHandler(c *fiber.Ctx) error {
 				continue
 			}
 			createOptionParams.Names = append(createOptionParams.Names, o.Name)
-			createOptionParams.ProductIds = append(createOptionParams.ProductIds, id)
+			createOptionParams.ProductIds = append(createOptionParams.ProductIds, productID)
 			createOptionParams.Nos = append(createOptionParams.Nos, int32(i))
 		}
 		optsDB, _ := db.ProductQueries.BulkInsertOptions(ctx, createOptionParams)
@@ -568,7 +568,7 @@ func UpdateProductHandler(c *fiber.Ctx) error {
 				createVariantParams.Stocks = append(createVariantParams.Stocks, v.Stock)
 				createVariantParams.Skus = append(createVariantParams.Skus, v.Sku)
 				createVariantParams.Nos = append(createVariantParams.Nos, int32(i))
-				createVariantParams.ProductIds = append(createVariantParams.ProductIds, id)
+				createVariantParams.ProductIds = append(createVariantParams.ProductIds, productID)
 				continue
 			}
 			variantIDs = append(variantIDs, v.ID)
@@ -595,7 +595,7 @@ func UpdateProductHandler(c *fiber.Ctx) error {
 		}
 		db.ProductQueries.DeleteVariantsNotInIDsByProductID(ctx, product_db.DeleteVariantsNotInIDsByProductIDParams{
 			Ids:       variantIDs,
-			ProductID: id,
+			ProductID: productID,
 		})
 		db.ProductQueries.DeleteVariantOptionsNotInIDs(ctx, deleteVariantOptionParams)
 		db.ProductQueries.BulkUpdateVariants(ctx, updateVariantParams)

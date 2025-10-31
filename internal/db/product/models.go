@@ -33,7 +33,7 @@ type Collection struct {
 	ID              int64            `json:"id"`
 	Name            string           `json:"name"`
 	Slug            string           `json:"slug"`
-	ImageUrl        pgtype.Text      `json:"image_url"`
+	File            pgtype.Text      `json:"file"`
 	IsFeatured      pgtype.Bool      `json:"is_featured"`
 	MetaTitle       pgtype.Text      `json:"meta_title"`
 	MetaDescription pgtype.Text      `json:"meta_description"`
