@@ -25,6 +25,28 @@ WHERE
 LIMIT
   1;
 
+-- name: GetCollectionsByLayout :many
+SELECT
+  id,
+  file,
+  slug
+FROM collections
+WHERE
+  layout = $1;
+
+-- name: GetCollectionsBySlug :one
+SELECT
+  id,
+  name,
+  file,
+  slug,
+  meta_title,
+  meta_description
+FROM collections
+WHERE
+  slug = $1
+LIMIT 1;
+
 -- name: CreateCollection :one
 INSERT INTO
   collections (

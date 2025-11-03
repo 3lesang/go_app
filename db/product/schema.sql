@@ -108,7 +108,8 @@ CREATE TABLE IF NOT EXISTS order_items (
   quantity INT NOT NULL DEFAULT 0,
   sale_price INT NOT NULL DEFAULT 0,
   order_id BIGINT NOT NULL REFERENCES orders (id) ON DELETE CASCADE,
-  product_id BIGINT NOT NULL REFERENCES products (id) ON DELETE SET NULL
+  product_id BIGINT REFERENCES products (id) ON DELETE SET NULL,
+  variant_id BIGINT REFERENCES variants (id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS addresses (
@@ -116,9 +117,9 @@ CREATE TABLE IF NOT EXISTS addresses (
   user_id INT,
   full_name TEXT NOT NULL,
   address_line TEXT NOT NULL,
-  city TEXT NOT NULL,
+  city TEXT,
   state TEXT,
-  country TEXT NOT NULL,
+  country TEXT,
   postal_code TEXT,
   phone TEXT
 );

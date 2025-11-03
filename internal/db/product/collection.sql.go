@@ -146,6 +146,79 @@ func (q *Queries) GetCollections(ctx context.Context) ([]GetCollectionsRow, erro
 	return items, nil
 }
 
+const getCollectionsByLayout = `-- name: GetCollectionsByLayout :many
+SELECT
+  id,
+  file,
+  slug
+FROM collections
+WHERE
+  layout = $1
+`
+
+type GetCollectionsByLayoutRow struct {
+	ID   int64       `json:"id"`
+	File pgtype.Text `json:"file"`
+	Slug string      `json:"slug"`
+}
+
+func (q *Queries) GetCollectionsByLayout(ctx context.Context, layout pgtype.Text) ([]GetCollectionsByLayoutRow, error) {
+	rows, err := q.db.Query(ctx, getCollectionsByLayout, layout)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetCollectionsByLayoutRow
+	for rows.Next() {
+		var i GetCollectionsByLayoutRow
+		if err := rows.Scan(&i.ID, &i.File, &i.Slug); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCollectionsBySlug = `-- name: GetCollectionsBySlug :one
+SELECT
+  id,
+  name,
+  file,
+  slug,
+  meta_title,
+  meta_description
+FROM collections
+WHERE
+  slug = $1
+LIMIT 1
+`
+
+type GetCollectionsBySlugRow struct {
+	ID              int64       `json:"id"`
+	Name            string      `json:"name"`
+	File            pgtype.Text `json:"file"`
+	Slug            string      `json:"slug"`
+	MetaTitle       pgtype.Text `json:"meta_title"`
+	MetaDescription pgtype.Text `json:"meta_description"`
+}
+
+func (q *Queries) GetCollectionsBySlug(ctx context.Context, slug string) (GetCollectionsBySlugRow, error) {
+	row := q.db.QueryRow(ctx, getCollectionsBySlug, slug)
+	var i GetCollectionsBySlugRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.File,
+		&i.Slug,
+		&i.MetaTitle,
+		&i.MetaDescription,
+	)
+	return i, err
+}
+
 const updateCollection = `-- name: UpdateCollection :exec
 UPDATE collections
 SET

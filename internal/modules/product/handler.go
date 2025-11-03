@@ -4,9 +4,6 @@ import (
 	"app/internal/db"
 	product_db "app/internal/db/product"
 	"context"
-	"database/sql"
-	"encoding/json"
-	"fmt"
 	"math"
 	"strconv"
 
@@ -79,13 +76,8 @@ func GetProductHandler(c *fiber.Ctx) error {
 		})
 	}
 	ctx := context.Background()
-	product, err := db.ProductQueries.GetProduct(ctx, id)
+	product, _ := db.ProductQueries.GetProduct(ctx, id)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"error": "not found",
-			})
-		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -173,6 +165,29 @@ func GetProductHandler(c *fiber.Ctx) error {
 		Collections:     collections,
 		IsActive:        product.IsActive,
 	})
+}
+
+// GetProductBySlugHandler godoc
+// @Summary      Get a product
+// @Description  Returns a product by slug
+// @Tags         products
+// @Produce      json
+// @Param        slug   path      string  true  "Product slug"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /products/slug/{slug} [get]
+func GetProductBySlugHandler(c *fiber.Ctx) error {
+	param := c.Params("slug")
+	ctx := context.Background()
+	result, err := db.ProductQueries.GetProductBySlug(ctx, param)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(result)
 }
 
 // CreateProductHandler godoc
@@ -558,7 +573,6 @@ func UpdateProductHandler(c *fiber.Ctx) error {
 		variantIDs := []int64{}
 		createVariantOptionParams := product_db.BulkInsertVariantOptionParams{}
 		vIdxs := []int{}
-		deleteVariantOptionParams := product_db.DeleteVariantOptionsNotInIDsParams{}
 		for i, v := range req.Variants {
 			if v.ID == 0 {
 				vIdxs = append(vIdxs, i)
@@ -574,11 +588,6 @@ func UpdateProductHandler(c *fiber.Ctx) error {
 			variantIDs = append(variantIDs, v.ID)
 
 			for _, vo := range v.Options {
-				if vo.ValueID != 0 {
-					deleteVariantOptionParams.OptionValueIds = append(deleteVariantOptionParams.OptionValueIds, vo.OptionID)
-					deleteVariantOptionParams.VariantIds = append(deleteVariantOptionParams.VariantIds, vo.ValueID)
-				}
-
 				optionID := optIdsMap[vo.OptionName]
 				valueID := optionValueIDMap[optionID][vo.Value]
 				createVariantOptionParams.OptionIds = append(createVariantOptionParams.OptionIds, optionID)
@@ -597,15 +606,11 @@ func UpdateProductHandler(c *fiber.Ctx) error {
 			Ids:       variantIDs,
 			ProductID: productID,
 		})
-		db.ProductQueries.DeleteVariantOptionsNotInIDs(ctx, deleteVariantOptionParams)
 		db.ProductQueries.BulkUpdateVariants(ctx, updateVariantParams)
 		db.ProductQueries.BulkInsertVariantOption(ctx, createVariantOptionParams)
 		vdbIDs, _ := db.ProductQueries.BulkInsertVariants(ctx, createVariantParams)
 
 		createVariantOptionParams = product_db.BulkInsertVariantOptionParams{}
-
-		jsonData, _ := json.MarshalIndent(req.Variants, "", "  ")
-		fmt.Println(string(jsonData))
 
 		for vIdx, v := range req.Variants {
 			variantID := v.ID
@@ -637,9 +642,6 @@ func UpdateProductHandler(c *fiber.Ctx) error {
 				createVariantOptionParams.OptionValueIds = append(createVariantOptionParams.OptionValueIds, valueID)
 			}
 		}
-
-		jsonData, _ = json.MarshalIndent(createVariantOptionParams, "", "  ")
-		fmt.Println(string(jsonData))
 
 		db.ProductQueries.BulkInsertVariantOption(ctx, createVariantOptionParams)
 	}

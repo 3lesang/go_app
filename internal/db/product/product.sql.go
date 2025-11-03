@@ -126,6 +126,105 @@ func (q *Queries) GetProduct(ctx context.Context, id int64) (GetProductRow, erro
 	return i, err
 }
 
+const getProductBySlug = `-- name: GetProductBySlug :one
+SELECT
+  p.id,
+  p.name,
+  p.slug,
+  p.origin_price,
+  p.sale_price,
+  p.meta_title,
+  p.meta_description,
+  p.category_id,
+  p.is_active,
+  (
+    SELECT COALESCE(json_agg(pf.name), '[]'::json)
+    FROM product_files pf
+    WHERE pf.product_id = p.id
+  ) as files,
+  (
+    SELECT COALESCE(json_agg(json_build_object(
+      'id', o.id,
+      'name', o.name,
+      'values', (
+        SELECT COALESCE(json_agg(json_build_object(
+            'id', ov.name,
+            'name', ov.name
+          )), '[]'::json)
+        FROM option_values ov
+        WHERE ov.option_id = o.id
+        )
+      )), '[]'::json)
+    FROM options o
+    WHERE o.product_id = p.id
+  ) as options,
+  (
+    SELECT COALESCE(
+      json_agg(
+        json_build_object(
+          'id', v.id,
+          'sku', v.sku,
+          'origin_price', v.origin_price,
+          'sale_price', v.sale_price,
+          'file', v.file,
+          'options', (
+            SELECT COALESCE(jsonb_object_agg(o.name, ov.name), '{}'::jsonb)
+            FROM variant_options vo
+            JOIN options o ON o.id = vo.option_id
+            JOIN option_values ov ON ov.id = vo.option_value_id
+            WHERE vo.variant_id = v.id
+          )
+        )
+        ORDER BY v.sale_price ASC
+      ),
+      '[]'::json
+    )
+    FROM variants v
+    WHERE v.product_id = p.id
+  ) AS variants
+FROM
+  products p
+WHERE
+  slug = $1
+LIMIT
+  1
+`
+
+type GetProductBySlugRow struct {
+	ID              int64       `json:"id"`
+	Name            string      `json:"name"`
+	Slug            string      `json:"slug"`
+	OriginPrice     int32       `json:"origin_price"`
+	SalePrice       int32       `json:"sale_price"`
+	MetaTitle       string      `json:"meta_title"`
+	MetaDescription string      `json:"meta_description"`
+	CategoryID      pgtype.Int8 `json:"category_id"`
+	IsActive        bool        `json:"is_active"`
+	Files           interface{} `json:"files"`
+	Options         interface{} `json:"options"`
+	Variants        interface{} `json:"variants"`
+}
+
+func (q *Queries) GetProductBySlug(ctx context.Context, slug string) (GetProductBySlugRow, error) {
+	row := q.db.QueryRow(ctx, getProductBySlug, slug)
+	var i GetProductBySlugRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Slug,
+		&i.OriginPrice,
+		&i.SalePrice,
+		&i.MetaTitle,
+		&i.MetaDescription,
+		&i.CategoryID,
+		&i.IsActive,
+		&i.Files,
+		&i.Options,
+		&i.Variants,
+	)
+	return i, err
+}
+
 const getProducts = `-- name: GetProducts :many
 SELECT
   p.id,

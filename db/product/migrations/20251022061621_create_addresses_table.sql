@@ -5,9 +5,9 @@ CREATE TABLE IF NOT EXISTS addresses (
   user_id INT,
   full_name TEXT NOT NULL,
   address_line TEXT NOT NULL,
-  city TEXT NOT NULL,
+  city TEXT,
   state TEXT,
-  country TEXT NOT NULL,
+  country TEXT,
   postal_code TEXT,
   phone TEXT
 );

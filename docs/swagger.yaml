@@ -113,6 +113,64 @@ definitions:
     - name
     - slug
     type: object
+  order.CreateOrderAddress:
+    properties:
+      address_line:
+        type: string
+      full_name:
+        type: string
+      phone:
+        type: string
+    type: object
+  order.CreateOrderItems:
+    properties:
+      product_id:
+        type: integer
+      quantity:
+        type: integer
+      sale_price:
+        type: integer
+      variant_id:
+        type: integer
+    type: object
+  order.CreateOrderRequest:
+    properties:
+      address:
+        $ref: '#/definitions/order.CreateOrderAddress'
+      discount_amount:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/order.CreateOrderItems'
+        type: array
+      total_amount:
+        type: integer
+    type: object
+  order.DeleteOrdersRequest:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
+    type: object
+  order.PaginatedResponse-any:
+    properties:
+      data:
+        items: {}
+        type: array
+      page:
+        example: 1
+        type: integer
+      page_size:
+        example: 10
+        type: integer
+      total_items:
+        example: 125
+        type: integer
+      total_pages:
+        example: 13
+        type: integer
+    type: object
   product.CreateOptionValue:
     properties:
       name:
@@ -835,6 +893,283 @@ paths:
       summary: Update a collection
       tags:
       - collections
+  /collections/{id}/products:
+    get:
+      description: Returns list products of collection
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get list products of collection
+      tags:
+      - collections
+  /collections/hero:
+    get:
+      description: Returns a list of hero collections
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get hero collection list
+      tags:
+      - collections
+  /collections/home:
+    get:
+      description: Returns a list of home collections
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get home collection list
+      tags:
+      - collections
+  /collections/slug/{slug}:
+    get:
+      description: Returns a collection by slug
+      parameters:
+      - description: Collection slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a collection
+      tags:
+      - collections
+  /orders:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes multiple orders by their IDs
+      parameters:
+      - description: List of order IDs
+        in: body
+        name: ids
+        required: true
+        schema:
+          $ref: '#/definitions/order.DeleteOrdersRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete multiple orders
+      tags:
+      - orders
+    get:
+      description: Returns a list of orders
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/order.PaginatedResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Get order list
+      tags:
+      - orders
+    post:
+      consumes:
+      - application/json
+      description: Creates a new order and returns the created order
+      parameters:
+      - description: Create data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/order.CreateOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new order
+      tags:
+      - orders
+  /orders/{id}:
+    get:
+      description: Returns a order by ID
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a order
+      tags:
+      - orders
+  /orders/{id}/success:
+    get:
+      description: Returns a order by ID
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Check order is created success
+      tags:
+      - orders
   /products:
     delete:
       consumes:
@@ -1011,6 +1346,45 @@ paths:
       security:
       - BearerAuth: []
       summary: Update a product
+      tags:
+      - products
+  /products/slug/{slug}:
+    get:
+      description: Returns a product by slug
+      parameters:
+      - description: Product slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a product
       tags:
       - products
   /users:

@@ -13,9 +13,9 @@ type Address struct {
 	UserID      pgtype.Int4 `json:"user_id"`
 	FullName    string      `json:"full_name"`
 	AddressLine string      `json:"address_line"`
-	City        string      `json:"city"`
+	City        pgtype.Text `json:"city"`
 	State       pgtype.Text `json:"state"`
-	Country     string      `json:"country"`
+	Country     pgtype.Text `json:"country"`
 	PostalCode  pgtype.Text `json:"postal_code"`
 	Phone       pgtype.Text `json:"phone"`
 }
@@ -81,11 +81,12 @@ type Order struct {
 }
 
 type OrderItem struct {
-	ID        int64 `json:"id"`
-	Quantity  int32 `json:"quantity"`
-	SalePrice int32 `json:"sale_price"`
-	OrderID   int64 `json:"order_id"`
-	ProductID int64 `json:"product_id"`
+	ID        int64       `json:"id"`
+	Quantity  int32       `json:"quantity"`
+	SalePrice int32       `json:"sale_price"`
+	OrderID   int64       `json:"order_id"`
+	ProductID pgtype.Int8 `json:"product_id"`
+	VariantID pgtype.Int8 `json:"variant_id"`
 }
 
 type Product struct {

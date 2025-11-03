@@ -33,6 +33,93 @@ func GetCollectionsHandler(c *fiber.Ctx) error {
 	})
 }
 
+// GetHeroCollectionsHandler godoc
+// @Summary      Get hero collection list
+// @Description  Returns a list of hero collections
+// @Tags         collections
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}
+// @Router       /collections/hero [get]
+func GetHeroCollectionsHandler(c *fiber.Ctx) error {
+	ctx := context.Background()
+	results, err := db.ProductQueries.GetCollectionsByLayout(ctx, pgtype.Text{String: "hero", Valid: true})
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(results)
+}
+
+// GetHomeCollectionsHandler godoc
+// @Summary      Get home collection list
+// @Description  Returns a list of home collections
+// @Tags         collections
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}
+// @Router       /collections/home [get]
+func GetHomeCollectionsHandler(c *fiber.Ctx) error {
+	ctx := context.Background()
+	results, err := db.ProductQueries.GetHomeCollectionsWithProductsAndVariants(ctx, product_db.GetHomeCollectionsWithProductsAndVariantsParams{
+		Limit:  10,
+		Offset: 0,
+	})
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(results)
+}
+
+// GetCollectionBySlugHandler godoc
+// @Summary      Get a collection
+// @Description  Returns a collection by slug
+// @Tags         collections
+// @Produce      json
+// @Param        slug   path      string  true  "Collection slug"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /collections/slug/{slug} [get]
+func GetCollectionBySlugHandler(c *fiber.Ctx) error {
+	param := c.Params("slug")
+	ctx := context.Background()
+	result, err := db.ProductQueries.GetCollectionsBySlug(ctx, param)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(result)
+}
+
+// GetProductsHandler godoc
+// @Summary      Get list products of collection
+// @Description  Returns list products of collection
+// @Tags         collections
+// @Produce      json
+// @Param        id   path      int  true  "id"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /collections/{id}/products [get]
+func GetProductsHandler(c *fiber.Ctx) error {
+	param := c.Params("id")
+	id, err := strconv.ParseInt(param, 10, 64)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid param",
+		})
+	}
+	ctx := context.Background()
+	result, err := db.ProductQueries.GetProductsByCollection(ctx, id)
+	return c.Status(fiber.StatusOK).JSON(result)
+}
+
 // GetCollectionHandler godoc
 // @Summary      Get a collection
 // @Description  Returns a collection by ID
@@ -73,6 +160,7 @@ func GetCollectionHandler(c *fiber.Ctx) error {
 		File:            result.File.String,
 		Name:            result.Name,
 		Slug:            result.Slug,
+		Layout:          result.Layout.String,
 		MetaTitle:       result.MetaTitle.String,
 		MetaDescription: result.MetaDescription.String,
 		Products:        products,
@@ -113,7 +201,7 @@ func CreateCollectionHandler(c *fiber.Ctx) error {
 		Slug: req.Slug,
 		Layout: pgtype.Text{
 			String: req.Layout,
-			Valid:  true,
+			Valid:  req.Layout != "",
 		},
 		File:      pgtype.Text{String: req.File, Valid: req.File != ""},
 		MetaTitle: pgtype.Text{String: req.MetaTitle, Valid: true},
@@ -178,7 +266,16 @@ func UpdateCollectionHandler(c *fiber.Ctx) error {
 		ID:   id,
 		Name: req.Name,
 		Slug: req.Slug,
-		File: pgtype.Text{String: req.File, Valid: true},
+		Layout: pgtype.Text{
+			String: req.Layout,
+			Valid:  req.Layout != "",
+		},
+		File:      pgtype.Text{String: req.File, Valid: req.File != ""},
+		MetaTitle: pgtype.Text{String: req.MetaTitle, Valid: true},
+		MetaDescription: pgtype.Text{
+			String: req.MetaDescription,
+			Valid:  true,
+		},
 	}
 	if err := db.ProductQueries.UpdateCollection(ctx, params); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

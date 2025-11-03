@@ -31,7 +31,7 @@ func (q *Queries) BulkInsertProductCollection(ctx context.Context, arg BulkInser
 
 const deleteCollectionProductsNotInIDsByCollection = `-- name: DeleteCollectionProductsNotInIDsByCollection :exec
 DELETE FROM product_collections
-WHERE collection_id IN (SELECT UNNEST($1::bigint[])) 
+WHERE collection_id IN (SELECT UNNEST($1::bigint[]))
   AND product_id NOT IN (SELECT UNNEST($2::bigint[]))
 `
 
@@ -99,8 +99,175 @@ func (q *Queries) GetCollectionsByProductID(ctx context.Context, productID int64
 	return items, nil
 }
 
+const getHomeCollectionsWithProductsAndVariants = `-- name: GetHomeCollectionsWithProductsAndVariants :many
+SELECT
+  c.id,
+  c.name,
+  c.file,
+  c.slug,
+  (
+    SELECT COALESCE(json_agg(json_build_object(
+      'id', p.id,
+      'name', p.name,
+      'slug', p.slug,
+      'sale_price', p.sale_price,
+      'origin_price', p.origin_price,
+      'files', (
+        SELECT COALESCE(json_agg(pf.name), '[]'::json)
+        FROM product_files pf
+        WHERE pf.product_id = p.id
+      ),
+      'variants', (
+        SELECT COALESCE(json_agg(json_build_object(
+          'id', v.id,
+          'sku', v.sku,
+          'origin_price', v.origin_price,
+          'sale_price', v.sale_price,
+          'options', (
+            SELECT COALESCE(jsonb_object_agg(o.name, ov.name), '{}'::jsonb)
+            FROM variant_options vo
+            JOIN options o ON o.id = vo.option_id
+            JOIN option_values ov ON ov.id = vo.option_value_id
+            WHERE vo.variant_id = v.id
+          )
+        )), '[]'::json)
+        FROM variants v
+        WHERE v.product_id = p.id
+      )
+    )), '[]'::json)
+    FROM products p
+    JOIN product_collections pc ON pc.product_id = p.id
+    WHERE pc.collection_id = c.id
+    GROUP BY p.id
+    ORDER BY p.id
+    LIMIT $1 OFFSET $2
+  ) AS products,
+  (
+    SELECT COUNT(*)
+    FROM product_collections pc
+    WHERE pc.collection_id = c.id
+  ) AS total_products
+FROM collections c
+WHERE c.layout = 'home'
+ORDER BY c.id
+`
+
+type GetHomeCollectionsWithProductsAndVariantsParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+type GetHomeCollectionsWithProductsAndVariantsRow struct {
+	ID            int64       `json:"id"`
+	Name          string      `json:"name"`
+	File          pgtype.Text `json:"file"`
+	Slug          string      `json:"slug"`
+	Products      interface{} `json:"products"`
+	TotalProducts int64       `json:"total_products"`
+}
+
+func (q *Queries) GetHomeCollectionsWithProductsAndVariants(ctx context.Context, arg GetHomeCollectionsWithProductsAndVariantsParams) ([]GetHomeCollectionsWithProductsAndVariantsRow, error) {
+	rows, err := q.db.Query(ctx, getHomeCollectionsWithProductsAndVariants, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetHomeCollectionsWithProductsAndVariantsRow
+	for rows.Next() {
+		var i GetHomeCollectionsWithProductsAndVariantsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.File,
+			&i.Slug,
+			&i.Products,
+			&i.TotalProducts,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getProductsByCollection = `-- name: GetProductsByCollection :many
+SELECT
+  p.id,
+  p.name,
+  p.slug,
+  p.origin_price,
+  p.sale_price,
+  (
+    SELECT COALESCE(json_agg(pf.name), '[]'::json)
+    FROM product_files pf
+    WHERE pf.product_id = p.id
+  ) as files,
+  (
+    SELECT COALESCE(json_agg(json_build_object(
+      'id', v.id,
+      'sku', v.sku,
+      'origin_price', v.origin_price,
+      'sale_price', v.sale_price,
+      'options', (
+        SELECT COALESCE(jsonb_object_agg(o.name, ov.name), '{}'::jsonb)
+        FROM variant_options vo
+        JOIN options o ON o.id = vo.option_id
+        JOIN option_values ov ON ov.id = vo.option_value_id
+        WHERE vo.variant_id = v.id
+      )
+    )), '[]'::json)
+    FROM variants v
+    WHERE v.product_id = p.id
+  ) as variants
+FROM
+  product_collections pc
+  LEFT JOIN products p ON pc.product_id = p.id
+WHERE collection_id = $1
+`
+
+type GetProductsByCollectionRow struct {
+	ID          pgtype.Int8 `json:"id"`
+	Name        pgtype.Text `json:"name"`
+	Slug        pgtype.Text `json:"slug"`
+	OriginPrice pgtype.Int4 `json:"origin_price"`
+	SalePrice   pgtype.Int4 `json:"sale_price"`
+	Files       interface{} `json:"files"`
+	Variants    interface{} `json:"variants"`
+}
+
+func (q *Queries) GetProductsByCollection(ctx context.Context, collectionID int64) ([]GetProductsByCollectionRow, error) {
+	rows, err := q.db.Query(ctx, getProductsByCollection, collectionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetProductsByCollectionRow
+	for rows.Next() {
+		var i GetProductsByCollectionRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Slug,
+			&i.OriginPrice,
+			&i.SalePrice,
+			&i.Files,
+			&i.Variants,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getProductsByCollectionID = `-- name: GetProductsByCollectionID :many
-SELECT 
+SELECT
   p.id,
   p.name
 FROM
