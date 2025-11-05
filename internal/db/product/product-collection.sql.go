@@ -138,15 +138,8 @@ SELECT
     FROM products p
     JOIN product_collections pc ON pc.product_id = p.id
     WHERE pc.collection_id = c.id
-    GROUP BY p.id
-    ORDER BY p.id
     LIMIT $1 OFFSET $2
-  ) AS products,
-  (
-    SELECT COUNT(*)
-    FROM product_collections pc
-    WHERE pc.collection_id = c.id
-  ) AS total_products
+  ) AS products
 FROM collections c
 WHERE c.layout = 'home'
 ORDER BY c.id
@@ -158,12 +151,11 @@ type GetHomeCollectionsWithProductsAndVariantsParams struct {
 }
 
 type GetHomeCollectionsWithProductsAndVariantsRow struct {
-	ID            int64       `json:"id"`
-	Name          string      `json:"name"`
-	File          pgtype.Text `json:"file"`
-	Slug          string      `json:"slug"`
-	Products      interface{} `json:"products"`
-	TotalProducts int64       `json:"total_products"`
+	ID       int64       `json:"id"`
+	Name     string      `json:"name"`
+	File     pgtype.Text `json:"file"`
+	Slug     string      `json:"slug"`
+	Products interface{} `json:"products"`
 }
 
 func (q *Queries) GetHomeCollectionsWithProductsAndVariants(ctx context.Context, arg GetHomeCollectionsWithProductsAndVariantsParams) ([]GetHomeCollectionsWithProductsAndVariantsRow, error) {
@@ -181,7 +173,6 @@ func (q *Queries) GetHomeCollectionsWithProductsAndVariants(ctx context.Context,
 			&i.File,
 			&i.Slug,
 			&i.Products,
-			&i.TotalProducts,
 		); err != nil {
 			return nil, err
 		}

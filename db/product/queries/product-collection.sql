@@ -97,15 +97,8 @@ SELECT
     FROM products p
     JOIN product_collections pc ON pc.product_id = p.id
     WHERE pc.collection_id = c.id
-    GROUP BY p.id
-    ORDER BY p.id
     LIMIT $1 OFFSET $2
-  ) AS products,
-  (
-    SELECT COUNT(*)
-    FROM product_collections pc
-    WHERE pc.collection_id = c.id
-  ) AS total_products
+  ) AS products
 FROM collections c
 WHERE c.layout = 'home'
 ORDER BY c.id;
