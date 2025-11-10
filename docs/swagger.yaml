@@ -113,6 +113,38 @@ definitions:
     - name
     - slug
     type: object
+  file.CreateFileRequest:
+    properties:
+      names:
+        items:
+          type: string
+        type: array
+    type: object
+  file.DeleteFilesRequest:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
+    type: object
+  file.PaginatedResponse-any:
+    properties:
+      data:
+        items: {}
+        type: array
+      page:
+        example: 1
+        type: integer
+      page_size:
+        example: 10
+        type: integer
+      total_items:
+        example: 125
+        type: integer
+      total_pages:
+        example: 13
+        type: integer
+    type: object
   order.CreateOrderAddress:
     properties:
       address_line:
@@ -998,6 +1030,104 @@ paths:
       summary: Get a collection
       tags:
       - collections
+  /files:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes multiple files by their IDs
+      parameters:
+      - description: List of file IDs
+        in: body
+        name: ids
+        required: true
+        schema:
+          $ref: '#/definitions/file.DeleteFilesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete multiple files
+      tags:
+      - files
+    get:
+      description: Returns a list of files
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/file.PaginatedResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Get file list
+      tags:
+      - files
+    post:
+      consumes:
+      - application/json
+      description: Creates a new file and returns the created file
+      parameters:
+      - description: Create data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/file.CreateFileRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new file
+      tags:
+      - files
   /orders:
     delete:
       consumes:

@@ -57,6 +57,12 @@ type Coupon struct {
 	IsActive        pgtype.Bool      `json:"is_active"`
 }
 
+type File struct {
+	ID        int64            `json:"id"`
+	Name      string           `json:"name"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+}
+
 type Option struct {
 	ID        int64  `json:"id"`
 	Name      string `json:"name"`

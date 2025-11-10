@@ -1,4 +1,5 @@
 bin
 sqlite.db
 tmp
-*.env
+.env
+*.local

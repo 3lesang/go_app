@@ -4,6 +4,7 @@ import (
 	"app/internal/modules/auth"
 	"app/internal/modules/category"
 	"app/internal/modules/collection"
+	"app/internal/modules/file"
 	"app/internal/modules/order"
 	"app/internal/modules/product"
 	"app/internal/modules/user"
@@ -75,4 +76,9 @@ func Init(app *fiber.App) {
 		SigningKey: jwtware.SigningKey{Key: []byte("jwt")},
 	}))
 	orderGroup.Delete("/", order.DeleteOrdersHandler)
+
+	fileGroup := v1.Group("/files")
+	fileGroup.Get("/", file.GetFilesHandler)
+	fileGroup.Post("/", file.CreateFileHandler)
+	fileGroup.Delete("/", file.DeleteFilesHandler)
 }
