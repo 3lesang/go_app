@@ -6,6 +6,7 @@ SELECT
   unnest(@nos::int[]),
   unnest(@product_ids::bigint[]) RETURNING id,
   name;
+
 -- name: GetOptionsByProductID :many
 SELECT
   id,

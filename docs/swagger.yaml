@@ -479,6 +479,21 @@ definitions:
       value_id:
         type: integer
     type: object
+  review.AverageRatingResponse:
+    properties:
+      average_rating:
+        example: 4.2
+        type: number
+      files:
+        items:
+          type: string
+        type: array
+      total_files:
+        type: integer
+      total_reviews:
+        example: 15
+        type: integer
+    type: object
   user.CreateUserRequest:
     properties:
       email:
@@ -1517,6 +1532,153 @@ paths:
       summary: Get a product
       tags:
       - products
+  /reviews:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Creates a new review with optional image and returns the created
+        review
+      parameters:
+      - default: 0
+        description: Product ID
+        format: int64
+        in: formData
+        name: product_id
+        required: true
+        type: integer
+      - default: 0
+        description: Customer ID
+        format: int64
+        in: formData
+        name: customer_id
+        required: true
+        type: integer
+      - default: 5
+        description: Rating (1-5)
+        in: formData
+        name: rating
+        required: true
+        type: integer
+      - default: test
+        description: Review comment
+        in: formData
+        name: comment
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: Array of files to upload
+        in: formData
+        items:
+          type: file
+        name: files
+        type: array
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new review
+      tags:
+      - reviews
+  /reviews/products/{id}:
+    get:
+      description: Returns a list of reviews for a product, with optional filters
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: Filter by rating
+        in: query
+        name: rating
+        type: integer
+      - description: Filter by whether review has image (true/false)
+        in: query
+        name: has_image
+        type: boolean
+      - description: Sort by created_at (1 = newest, 0 = oldest)
+        in: query
+        name: sort_flag
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get review list
+      tags:
+      - reviews
+  /reviews/products/{id}/overview:
+    get:
+      consumes:
+      - application/json
+      description: Returns the average rating and total number of reviews for a specific
+        product
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/review.AverageRatingResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get average rating of a product
+      tags:
+      - reviews
   /users:
     delete:
       consumes:

@@ -57,6 +57,16 @@ type Coupon struct {
 	IsActive        pgtype.Bool      `json:"is_active"`
 }
 
+type Customer struct {
+	ID        int64            `json:"id"`
+	Name      string           `json:"name"`
+	Phone     string           `json:"phone"`
+	Avatar    pgtype.Text      `json:"avatar"`
+	Email     pgtype.Text      `json:"email"`
+	Password  string           `json:"password"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+}
+
 type File struct {
 	ID        int64            `json:"id"`
 	Name      string           `json:"name"`
@@ -132,11 +142,18 @@ type ProductTag struct {
 }
 
 type Review struct {
-	ID        int64            `json:"id"`
-	ProductID pgtype.Int8      `json:"product_id"`
-	Rating    pgtype.Int4      `json:"rating"`
-	Comment   pgtype.Text      `json:"comment"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
+	ID         int64            `json:"id"`
+	ProductID  pgtype.Int8      `json:"product_id"`
+	Rating     pgtype.Int4      `json:"rating"`
+	Comment    pgtype.Text      `json:"comment"`
+	HasFile    bool             `json:"has_file"`
+	CustomerID int64            `json:"customer_id"`
+	CreatedAt  pgtype.Timestamp `json:"created_at"`
+}
+
+type ReviewFile struct {
+	Name     string `json:"name"`
+	ReviewID int64  `json:"review_id"`
 }
 
 type Variant struct {

@@ -1,9 +1,10 @@
-package server
+package main
 
 import (
 	"log"
 
 	_ "app/docs"
+	"app/internal/db"
 	"app/internal/router"
 
 	"github.com/goccy/go-json"
@@ -13,6 +14,14 @@ import (
 	"github.com/gofiber/swagger"
 )
 
+// @title           Swagger Example API
+// @version         1.0
+// @description     This is a sample server celler server.
+// @basePath /api/v1
+// @schemes http https
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func Serve() {
 	app := fiber.New(fiber.Config{
 		DisableStartupMessage: true,
@@ -42,4 +51,10 @@ func Serve() {
 	router.Init(app)
 	log.Println("Server started on port 8080")
 	log.Fatal(app.Listen(":8080"))
+}
+
+func main() {
+	db.Init()
+	defer db.Close()
+	Serve()
 }

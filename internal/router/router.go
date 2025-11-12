@@ -7,6 +7,7 @@ import (
 	"app/internal/modules/file"
 	"app/internal/modules/order"
 	"app/internal/modules/product"
+	"app/internal/modules/review"
 	"app/internal/modules/user"
 
 	jwtware "github.com/gofiber/contrib/jwt"
@@ -76,6 +77,11 @@ func Init(app *fiber.App) {
 		SigningKey: jwtware.SigningKey{Key: []byte("jwt")},
 	}))
 	orderGroup.Delete("/", order.DeleteOrdersHandler)
+
+	reviewGroup := v1.Group("/reviews")
+	reviewGroup.Post("/", review.CreateReviewHandler)
+	reviewGroup.Get("/products/:id", review.GetReviewsByProductHandler)
+	reviewGroup.Get("/products/:id/overview", review.GetOverviewByProductHandler)
 
 	fileGroup := v1.Group("/files")
 	fileGroup.Get("/", file.GetFilesHandler)

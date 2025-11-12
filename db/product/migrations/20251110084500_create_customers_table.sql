@@ -1,16 +1,17 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE IF NOT EXISTS reviews (
+CREATE TABLE IF NOT EXISTS customers (
   id BIGSERIAL PRIMARY KEY,
-  product_id INT REFERENCES products (id) ON DELETE CASCADE,
-  rating INT CHECK (rating BETWEEN 1 AND 5),
-  comment TEXT,
+  name TEXT UNIQUE NOT NULL,
+  phone TEXT UNIQUE NOT NULL,
+  avatar TEXT,
+  email TEXT,
+  password TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
 -- +goose StatementEnd
+
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS reviews CASCADE;
-
+DROP TABLE IF EXISTS customers CASCADE;
 -- +goose StatementEnd

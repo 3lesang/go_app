@@ -7,12 +7,12 @@ dev:
 
 # Build production binary
 build: clean swagger
-	go build -o bin/app main.go
-	@ls -lh bin/app | awk '{print $$5}'
+	go build -o bin/server cmd/server/main.go
+	@ls -lh bin/server | awk '{print $$5}'
 
 # Run compiled binary
 run:
-	./bin/app
+	./bin/server
 
 # Clean build artifacts
 clean:
@@ -21,7 +21,7 @@ clean:
 # Generate swagger docs manually
 swagger:
 	go install github.com/swaggo/swag/cmd/swag@latest
-	$(shell go env GOPATH)/bin/swag init
+	$(shell go env GOPATH)/bin/swag init -g cmd/server/main.go
 
 sqlc:
 	go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
