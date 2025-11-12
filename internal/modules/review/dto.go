@@ -21,3 +21,7 @@ type AverageRatingResponse struct {
 	TotalFiles    int64    `json:"total_files"`
 	Files         []string `json:"files"`
 }
+
+type DeleteReviewsRequest struct {
+	IDs []int64 `json:"ids"`
+}

@@ -56,3 +56,8 @@ INSERT INTO
 VALUES
   ($1, $2, $3, $4, $5)
 RETURNING id;
+
+-- name: BulkDeleteReviews :exec
+DELETE FROM reviews
+WHERE
+  id = ANY ($1::bigint[]);

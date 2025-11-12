@@ -4,6 +4,7 @@ import (
 	"app/internal/modules/auth"
 	"app/internal/modules/category"
 	"app/internal/modules/collection"
+	"app/internal/modules/customer"
 	"app/internal/modules/file"
 	"app/internal/modules/order"
 	"app/internal/modules/product"
@@ -80,8 +81,13 @@ func Init(app *fiber.App) {
 
 	reviewGroup := v1.Group("/reviews")
 	reviewGroup.Post("/", review.CreateReviewHandler)
+	reviewGroup.Delete("/", review.BulkDeleteReviewsHandler)
+
 	reviewGroup.Get("/products/:id", review.GetReviewsByProductHandler)
 	reviewGroup.Get("/products/:id/overview", review.GetOverviewByProductHandler)
+
+	customerGroup := v1.Group("/customers")
+	customerGroup.Get("/", customer.GetCustomersHandler)
 
 	fileGroup := v1.Group("/files")
 	fileGroup.Get("/", file.GetFilesHandler)

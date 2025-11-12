@@ -11,6 +11,17 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const bulkDeleteReviews = `-- name: BulkDeleteReviews :exec
+DELETE FROM reviews
+WHERE
+  id = ANY ($1::bigint[])
+`
+
+func (q *Queries) BulkDeleteReviews(ctx context.Context, dollar_1 []int64) error {
+	_, err := q.db.Exec(ctx, bulkDeleteReviews, dollar_1)
+	return err
+}
+
 const countReviewsByProduct = `-- name: CountReviewsByProduct :one
 SELECT
   COUNT(*)

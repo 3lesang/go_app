@@ -113,6 +113,24 @@ definitions:
     - name
     - slug
     type: object
+  customer.PaginatedResponse-any:
+    properties:
+      data:
+        items: {}
+        type: array
+      page:
+        example: 1
+        type: integer
+      page_size:
+        example: 10
+        type: integer
+      total_items:
+        example: 125
+        type: integer
+      total_pages:
+        example: 13
+        type: integer
+    type: object
   file.CreateFileRequest:
     properties:
       names:
@@ -493,6 +511,13 @@ definitions:
       total_reviews:
         example: 15
         type: integer
+    type: object
+  review.DeleteReviewsRequest:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
     type: object
   user.CreateUserRequest:
     properties:
@@ -1045,6 +1070,32 @@ paths:
       summary: Get a collection
       tags:
       - collections
+  /customers:
+    get:
+      description: Returns a list of customers
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/customer.PaginatedResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Get customer list
+      tags:
+      - customers
   /files:
     delete:
       consumes:
@@ -1533,6 +1584,42 @@ paths:
       tags:
       - products
   /reviews:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes multiple reviews by their IDs
+      parameters:
+      - description: List of review IDs
+        in: body
+        name: ids
+        required: true
+        schema:
+          $ref: '#/definitions/review.DeleteReviewsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete multiple reviews
+      tags:
+      - reviews
     post:
       consumes:
       - multipart/form-data

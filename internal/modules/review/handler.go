@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/minio/minio-go/v7"
@@ -80,7 +81,7 @@ func GetReviewsByProductHandler(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
-	total, err := db.ProductQueries.CountReviewsByProduct(c.Context(), pgtype.Int8{Int64: id})
+	total, err := db.ProductQueries.CountReviewsByProduct(c.Context(), pgtype.Int8{Int64: id, Valid: true})
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
@@ -119,11 +120,15 @@ func CreateReviewHandler(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid form data"})
 	}
-	ctx := context.Background()
-
-	form, _ := c.MultipartForm()
+	form, err := c.MultipartForm()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
 	files := form.File["files"]
 	fileKeys := []string{}
+	ctx := context.Background()
 
 	if len(files) > 0 {
 		endpoint := os.Getenv("S3_ENDPOINT")
@@ -133,7 +138,6 @@ func CreateReviewHandler(c *fiber.Ctx) error {
 			Creds:  credentials.NewStaticV4(accessKeyID, secretAccessKey, ""),
 			Secure: true,
 		})
-
 		for _, file := range files {
 			src, _ := file.Open()
 			defer src.Close()
@@ -169,13 +173,14 @@ func CreateReviewHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	createReviewFileParams := product_db.BulkInsertReviewFilesParams{}
-
-	for _, key := range fileKeys {
-		createReviewFileParams.Names = append(createReviewFileParams.Names, key)
-		createReviewFileParams.ReviewIds = append(createReviewFileParams.ReviewIds, id)
+	if len(fileKeys) > 0 {
+		createReviewFileParams := product_db.BulkInsertReviewFilesParams{}
+		for _, key := range fileKeys {
+			createReviewFileParams.Names = append(createReviewFileParams.Names, key)
+			createReviewFileParams.ReviewIds = append(createReviewFileParams.ReviewIds, id)
+		}
+		db.ProductQueries.BulkInsertReviewFiles(ctx, createReviewFileParams)
 	}
-	db.ProductQueries.BulkInsertReviewFiles(ctx, createReviewFileParams)
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"id":      id,
@@ -218,4 +223,38 @@ func GetOverviewByProductHandler(c *fiber.Ctx) error {
 		Files:         files,
 	}
 	return c.JSON(response)
+}
+
+// BulkDeleteReviewsHandler godoc
+// @Summary      Delete multiple reviews
+// @Description  Deletes multiple reviews by their IDs
+// @Tags         reviews
+// @Security BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        ids  body      DeleteReviewsRequest  true  "List of review IDs"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /reviews [delete]
+func BulkDeleteReviewsHandler(c *fiber.Ctx) error {
+	var req DeleteReviewsRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+	}
+	validate := validator.New()
+	if err := validate.Struct(req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	ctx := context.Background()
+	if err := db.ProductQueries.BulkDeleteReviews(ctx, req.IDs); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	return c.SendStatus(fiber.StatusOK)
 }
