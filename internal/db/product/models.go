@@ -73,6 +73,13 @@ type File struct {
 	CreatedAt pgtype.Timestamp `json:"created_at"`
 }
 
+type Menu struct {
+	ID        int64            `json:"id"`
+	Name      string           `json:"name"`
+	Position  string           `json:"position"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+}
+
 type Option struct {
 	ID        int64  `json:"id"`
 	Name      string `json:"name"`

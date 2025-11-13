@@ -6,6 +6,7 @@ import (
 	"app/internal/modules/collection"
 	"app/internal/modules/customer"
 	"app/internal/modules/file"
+	"app/internal/modules/menu"
 	"app/internal/modules/order"
 	"app/internal/modules/page"
 	"app/internal/modules/product"
@@ -98,6 +99,13 @@ func Init(app *fiber.App) {
 	pageGroup.Post("/", page.CreatePageHandler)
 	pageGroup.Put("/:id", page.UpdatePageHandler)
 	pageGroup.Delete("/", page.BulkDeletePagesHandler)
+
+	menuGroup := v1.Group("/menus")
+	menuGroup.Get("/", menu.GetMenusHandler)
+	menuGroup.Get("/:id", menu.GetMenuHandler)
+	menuGroup.Post("/", menu.CreateMenuHandler)
+	menuGroup.Put("/:id", menu.UpdateMenuHandler)
+	menuGroup.Delete("/", menu.BulkDeleteMenusHandler)
 
 	fileGroup := v1.Group("/files")
 	fileGroup.Get("/", file.GetFilesHandler)

@@ -183,6 +183,51 @@ definitions:
         example: 13
         type: integer
     type: object
+  menu.CreateMenuRequest:
+    properties:
+      name:
+        type: string
+      position:
+        type: string
+    required:
+    - name
+    - position
+    type: object
+  menu.DeleteMenusRequest:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
+    type: object
+  menu.PaginatedResponse-any:
+    properties:
+      data:
+        items: {}
+        type: array
+      page:
+        example: 1
+        type: integer
+      page_size:
+        example: 10
+        type: integer
+      total_items:
+        example: 125
+        type: integer
+      total_pages:
+        example: 13
+        type: integer
+    type: object
+  menu.UpdateMenuRequest:
+    properties:
+      name:
+        type: string
+      position:
+        type: string
+    required:
+    - name
+    - position
+    type: object
   order.CreateOrderAddress:
     properties:
       address_line:
@@ -1329,6 +1374,183 @@ paths:
       summary: Create a new file
       tags:
       - files
+  /menus:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes multiple menu by their IDs
+      parameters:
+      - description: List of order IDs
+        in: body
+        name: ids
+        required: true
+        schema:
+          $ref: '#/definitions/menu.DeleteMenusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete multiple menu
+      tags:
+      - menus
+    get:
+      description: Returns a list of menus
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/menu.PaginatedResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Get menu list
+      tags:
+      - menus
+    post:
+      consumes:
+      - application/json
+      description: Creates a new menu and returns the created menu
+      parameters:
+      - description: Create data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/menu.CreateMenuRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new menu
+      tags:
+      - menus
+  /menus/{id}:
+    get:
+      description: Returns a menu by ID
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get a menu
+      tags:
+      - menus
+    put:
+      consumes:
+      - application/json
+      description: Updates a menu
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/menu.UpdateMenuRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a menu
+      tags:
+      - menus
   /orders:
     delete:
       consumes:
