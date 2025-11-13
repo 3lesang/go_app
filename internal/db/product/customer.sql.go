@@ -9,6 +9,17 @@ import (
 	"context"
 )
 
+const bulkDeleteCustomers = `-- name: BulkDeleteCustomers :exec
+DELETE FROM customers
+WHERE
+  id = ANY ($1::bigint[])
+`
+
+func (q *Queries) BulkDeleteCustomers(ctx context.Context, dollar_1 []int64) error {
+	_, err := q.db.Exec(ctx, bulkDeleteCustomers, dollar_1)
+	return err
+}
+
 const countCustomers = `-- name: CountCustomers :one
 SELECT
   COUNT(*)
@@ -21,6 +32,27 @@ func (q *Queries) CountCustomers(ctx context.Context) (int64, error) {
 	var count int64
 	err := row.Scan(&count)
 	return count, err
+}
+
+const createCustomer = `-- name: CreateCustomer :one
+INSERT INTO
+  customers (name, phone, password)
+VALUES
+  ($1, $2, $3)
+RETURNING id
+`
+
+type CreateCustomerParams struct {
+	Name     string `json:"name"`
+	Phone    string `json:"phone"`
+	Password string `json:"password"`
+}
+
+func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) (int64, error) {
+	row := q.db.QueryRow(ctx, createCustomer, arg.Name, arg.Phone, arg.Password)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
 }
 
 const getCustomers = `-- name: GetCustomers :many

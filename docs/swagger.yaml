@@ -113,6 +113,26 @@ definitions:
     - name
     - slug
     type: object
+  customer.CreateCustomerRequest:
+    properties:
+      name:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+    required:
+    - name
+    - password
+    - phone
+    type: object
+  customer.DeleteCustomersRequest:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
+    type: object
   customer.PaginatedResponse-any:
     properties:
       data:
@@ -220,6 +240,51 @@ definitions:
       total_pages:
         example: 13
         type: integer
+    type: object
+  page.CreatePageRequest:
+    properties:
+      name:
+        type: string
+      slug:
+        type: string
+    required:
+    - name
+    - slug
+    type: object
+  page.DeletePagesRequest:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
+    type: object
+  page.PaginatedResponse-any:
+    properties:
+      data:
+        items: {}
+        type: array
+      page:
+        example: 1
+        type: integer
+      page_size:
+        example: 10
+        type: integer
+      total_items:
+        example: 125
+        type: integer
+      total_pages:
+        example: 13
+        type: integer
+    type: object
+  page.UpdatePageRequest:
+    properties:
+      name:
+        type: string
+      slug:
+        type: string
+    required:
+    - name
+    - slug
     type: object
   product.CreateOptionValue:
     properties:
@@ -1071,6 +1136,42 @@ paths:
       tags:
       - collections
   /customers:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes multiple customer by their IDs
+      parameters:
+      - description: List of order IDs
+        in: body
+        name: ids
+        required: true
+        schema:
+          $ref: '#/definitions/customer.DeleteCustomersRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete multiple customer
+      tags:
+      - customers
     get:
       description: Returns a list of customers
       parameters:
@@ -1094,6 +1195,40 @@ paths:
       security:
       - BearerAuth: []
       summary: Get customer list
+      tags:
+      - customers
+    post:
+      consumes:
+      - application/json
+      description: Creates a new customer and returns the created customer
+      parameters:
+      - description: Create data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/customer.CreateCustomerRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new customer
       tags:
       - customers
   /files:
@@ -1366,6 +1501,183 @@ paths:
       summary: Check order is created success
       tags:
       - orders
+  /pages:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes multiple page by their IDs
+      parameters:
+      - description: List of order IDs
+        in: body
+        name: ids
+        required: true
+        schema:
+          $ref: '#/definitions/page.DeletePagesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete multiple page
+      tags:
+      - pages
+    get:
+      description: Returns a list of pages
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/page.PaginatedResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Get page list
+      tags:
+      - pages
+    post:
+      consumes:
+      - application/json
+      description: Creates a new page and returns the created page
+      parameters:
+      - description: Create data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/page.CreatePageRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new page
+      tags:
+      - pages
+  /pages/{id}:
+    get:
+      description: Returns a page by ID
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get a page
+      tags:
+      - pages
+    put:
+      consumes:
+      - application/json
+      description: Updates a page
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/page.UpdatePageRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a page
+      tags:
+      - pages
   /products:
     delete:
       consumes:

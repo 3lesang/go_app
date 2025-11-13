@@ -105,6 +105,13 @@ type OrderItem struct {
 	VariantID pgtype.Int8 `json:"variant_id"`
 }
 
+type Page struct {
+	ID        int64            `json:"id"`
+	Name      string           `json:"name"`
+	Slug      string           `json:"slug"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+}
+
 type Product struct {
 	ID              int64            `json:"id"`
 	Name            string           `json:"name"`

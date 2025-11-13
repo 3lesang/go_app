@@ -7,6 +7,7 @@ import (
 	"app/internal/modules/customer"
 	"app/internal/modules/file"
 	"app/internal/modules/order"
+	"app/internal/modules/page"
 	"app/internal/modules/product"
 	"app/internal/modules/review"
 	"app/internal/modules/user"
@@ -88,6 +89,15 @@ func Init(app *fiber.App) {
 
 	customerGroup := v1.Group("/customers")
 	customerGroup.Get("/", customer.GetCustomersHandler)
+	customerGroup.Post("/", customer.CreateCustomerHandler)
+	customerGroup.Delete("/", customer.BulkDeleteCustomersHandler)
+
+	pageGroup := v1.Group("/pages")
+	pageGroup.Get("/", page.GetPagesHandler)
+	pageGroup.Get("/:id", page.GetPageHandler)
+	pageGroup.Post("/", page.CreatePageHandler)
+	pageGroup.Put("/:id", page.UpdatePageHandler)
+	pageGroup.Delete("/", page.BulkDeletePagesHandler)
 
 	fileGroup := v1.Group("/files")
 	fileGroup.Get("/", file.GetFilesHandler)

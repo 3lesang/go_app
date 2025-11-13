@@ -1,4 +1,4 @@
-package customer
+package page
 
 type PaginatedResponse[T any] struct {
 	Page       int   `json:"page" example:"1"`
@@ -8,12 +8,16 @@ type PaginatedResponse[T any] struct {
 	Data       []T   `json:"data"`
 }
 
-type CreateCustomerRequest struct {
-	Name     string `json:"name" validate:"required"`
-	Phone    string `json:"phone" validate:"required"`
-	Password string `json:"password" validate:"required"`
+type CreatePageRequest struct {
+	Name string `json:"name" validate:"required"`
+	Slug string `json:"slug" validate:"required"`
 }
 
-type DeleteCustomersRequest struct {
+type UpdatePageRequest struct {
+	Name string `json:"name" validate:"required"`
+	Slug string `json:"slug" validate:"required"`
+}
+
+type DeletePagesRequest struct {
 	IDs []int64 `json:"ids"`
 }
