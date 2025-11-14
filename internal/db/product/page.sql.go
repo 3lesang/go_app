@@ -73,6 +73,25 @@ func (q *Queries) GetPage(ctx context.Context, id int64) (GetPageRow, error) {
 	return i, err
 }
 
+const getPageBySlug = `-- name: GetPageBySlug :one
+SELECT id, name, slug
+FROM pages
+WHERE slug = $1
+`
+
+type GetPageBySlugRow struct {
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
+	Slug string `json:"slug"`
+}
+
+func (q *Queries) GetPageBySlug(ctx context.Context, slug string) (GetPageBySlugRow, error) {
+	row := q.db.QueryRow(ctx, getPageBySlug, slug)
+	var i GetPageBySlugRow
+	err := row.Scan(&i.ID, &i.Name, &i.Slug)
+	return i, err
+}
+
 const getPages = `-- name: GetPages :many
 SELECT id, name, slug
 FROM pages

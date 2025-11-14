@@ -91,6 +91,36 @@ func GetMenuHandler(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(result)
 }
 
+// GetMenuByPositionHandler godoc
+// @Summary      Get a menu
+// @Description  Returns a menu by ID
+// @Tags         menus
+// @Security BearerAuth
+// @Produce      json
+// @Param        id   path      string  true  "id"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /menus/position/{id} [get]
+func GetMenuByPositionHandler(c *fiber.Ctx) error {
+	param := c.Params("id")
+	ctx := context.Background()
+	result, err := db.ProductQueries.GetMenuByPosition(ctx, param)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "not found",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(result)
+}
+
 // CreateMenuHandler godoc
 // @Summary      Create a new menu
 // @Description  Creates a new menu and returns the created menu

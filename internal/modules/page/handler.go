@@ -91,6 +91,36 @@ func GetPageHandler(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(result)
 }
 
+// GetPageBySlugHandler godoc
+// @Summary      Get a page
+// @Description  Returns a page by ID
+// @Tags         pages
+// @Security BearerAuth
+// @Produce      json
+// @Param        id   path      string  true  "id"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /pages/slug/{id} [get]
+func GetPageBySlugHandler(c *fiber.Ctx) error {
+	param := c.Params("id")
+	ctx := context.Background()
+	result, err := db.ProductQueries.GetPageBySlug(ctx, param)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "not found",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(result)
+}
+
 // CreatePageHandler godoc
 // @Summary      Create a new page
 // @Description  Creates a new page and returns the created page

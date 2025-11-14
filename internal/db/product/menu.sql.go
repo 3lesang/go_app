@@ -73,6 +73,25 @@ func (q *Queries) GetMenu(ctx context.Context, id int64) (GetMenuRow, error) {
 	return i, err
 }
 
+const getMenuByPosition = `-- name: GetMenuByPosition :one
+SELECT id, name, position
+FROM menus
+WHERE position = $1
+`
+
+type GetMenuByPositionRow struct {
+	ID       int64  `json:"id"`
+	Name     string `json:"name"`
+	Position string `json:"position"`
+}
+
+func (q *Queries) GetMenuByPosition(ctx context.Context, position string) (GetMenuByPositionRow, error) {
+	row := q.db.QueryRow(ctx, getMenuByPosition, position)
+	var i GetMenuByPositionRow
+	err := row.Scan(&i.ID, &i.Name, &i.Position)
+	return i, err
+}
+
 const getMenus = `-- name: GetMenus :many
 SELECT id, name, position
 FROM menus

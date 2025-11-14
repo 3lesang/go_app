@@ -17,6 +17,11 @@ SELECT id, name, position
 FROM menus
 WHERE id = $1;
 
+-- name: GetMenuByPosition :one
+SELECT id, name, position
+FROM menus
+WHERE position = $1;
+
 -- name: CreateMenu :one
 INSERT INTO
   menus (name, position)
