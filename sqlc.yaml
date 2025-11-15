@@ -18,3 +18,12 @@ sql:
         out: "internal/db/product"
         emit_json_tags: true
         sql_package: "pgx/v5"
+  - engine: "postgresql"
+    schema: "db/blog/schema.sql"
+    queries: "db/blog/queries"
+    gen:
+      go:
+        package: "blog_db"
+        out: "internal/db/blog"
+        emit_json_tags: true
+        sql_package: "pgx/v5"

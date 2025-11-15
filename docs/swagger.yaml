@@ -331,6 +331,51 @@ definitions:
     - name
     - slug
     type: object
+  post.CreatePostRequest:
+    properties:
+      slug:
+        type: string
+      title:
+        type: string
+    required:
+    - slug
+    - title
+    type: object
+  post.DeletePostsRequest:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
+    type: object
+  post.PaginatedResponse-any:
+    properties:
+      data:
+        items: {}
+        type: array
+      page:
+        example: 1
+        type: integer
+      page_size:
+        example: 10
+        type: integer
+      total_items:
+        example: 125
+        type: integer
+      total_pages:
+        example: 13
+        type: integer
+    type: object
+  post.UpdatePostRequest:
+    properties:
+      slug:
+        type: string
+      title:
+        type: string
+    required:
+    - slug
+    - title
+    type: object
   product.CreateOptionValue:
     properties:
       name:
@@ -1980,6 +2025,223 @@ paths:
       summary: Get a page
       tags:
       - pages
+  /posts:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes multiple post by their IDs
+      parameters:
+      - description: List of order IDs
+        in: body
+        name: ids
+        required: true
+        schema:
+          $ref: '#/definitions/post.DeletePostsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete multiple post
+      tags:
+      - posts
+    get:
+      description: Returns a list of posts
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/post.PaginatedResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Get post list
+      tags:
+      - posts
+    post:
+      consumes:
+      - application/json
+      description: Creates a new post and returns the created post
+      parameters:
+      - description: Create data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/post.CreatePostRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new post
+      tags:
+      - posts
+  /posts/{id}:
+    get:
+      description: Returns a post by ID
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get a post
+      tags:
+      - posts
+    put:
+      consumes:
+      - application/json
+      description: Updates a post
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/post.UpdatePostRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a post
+      tags:
+      - posts
+  /posts/slug/{id}:
+    get:
+      description: Returns a post by ID
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get a post
+      tags:
+      - posts
   /products:
     delete:
       consumes:

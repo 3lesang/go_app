@@ -9,6 +9,7 @@ import (
 	"app/internal/modules/menu"
 	"app/internal/modules/order"
 	"app/internal/modules/page"
+	"app/internal/modules/post"
 	"app/internal/modules/product"
 	"app/internal/modules/review"
 	"app/internal/modules/user"
@@ -100,6 +101,14 @@ func Init(app *fiber.App) {
 	pageGroup.Post("/", page.CreatePageHandler)
 	pageGroup.Put("/:id", page.UpdatePageHandler)
 	pageGroup.Delete("/", page.BulkDeletePagesHandler)
+
+	postGroup := v1.Group("/posts")
+	postGroup.Get("/", post.GetPostsHandler)
+	postGroup.Get("/:id", post.GetPostHandler)
+	postGroup.Get("/slug/:id", post.GetPostBySlugHandler)
+	postGroup.Post("/", post.CreatePostHandler)
+	postGroup.Put("/:id", post.UpdatePostHandler)
+	postGroup.Delete("/", post.BulkDeletePostsHandler)
 
 	menuGroup := v1.Group("/menus")
 	menuGroup.Get("/", menu.GetMenusHandler)
