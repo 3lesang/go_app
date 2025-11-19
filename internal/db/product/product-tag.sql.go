@@ -28,7 +28,9 @@ func (q *Queries) BulkInsertProductTags(ctx context.Context, arg BulkInsertProdu
 }
 
 const deleteProductTags = `-- name: DeleteProductTags :exec
-DELETE FROM product_tags WHERE product_id = $1
+DELETE FROM product_tags
+WHERE
+  product_id = $1
 `
 
 func (q *Queries) DeleteProductTags(ctx context.Context, productID int64) error {

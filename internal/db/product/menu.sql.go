@@ -39,7 +39,8 @@ INSERT INTO
   menus (name, position)
 VALUES
   ($1, $2)
-RETURNING id
+RETURNING
+  id
 `
 
 type CreateMenuParams struct {
@@ -55,9 +56,14 @@ func (q *Queries) CreateMenu(ctx context.Context, arg CreateMenuParams) (int64, 
 }
 
 const getMenu = `-- name: GetMenu :one
-SELECT id, name, position
-FROM menus
-WHERE id = $1
+SELECT
+  id,
+  name,
+  position
+FROM
+  menus
+WHERE
+  id = $1
 `
 
 type GetMenuRow struct {
@@ -74,9 +80,14 @@ func (q *Queries) GetMenu(ctx context.Context, id int64) (GetMenuRow, error) {
 }
 
 const getMenuByPosition = `-- name: GetMenuByPosition :one
-SELECT id, name, position
-FROM menus
-WHERE position = $1
+SELECT
+  id,
+  name,
+  position
+FROM
+  menus
+WHERE
+  position = $1
 `
 
 type GetMenuByPositionRow struct {
@@ -93,8 +104,12 @@ func (q *Queries) GetMenuByPosition(ctx context.Context, position string) (GetMe
 }
 
 const getMenus = `-- name: GetMenus :many
-SELECT id, name, position
-FROM menus
+SELECT
+  id,
+  name,
+  position
+FROM
+  menus
 LIMIT
   $1
 OFFSET

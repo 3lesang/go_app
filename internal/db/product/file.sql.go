@@ -22,9 +22,7 @@ func (q *Queries) BulkDeleteFiles(ctx context.Context, dollar_1 []int64) error {
 
 const bulkInsertFiles = `-- name: BulkInsertFiles :exec
 INSERT INTO
-  files (
-    name
-  )
+  files (name)
 SELECT
   unnest($1::text[]) as name
 `
@@ -50,7 +48,8 @@ func (q *Queries) CountFiles(ctx context.Context) (int64, error) {
 
 const getFiles = `-- name: GetFiles :many
 SELECT
-  id, name
+  id,
+  name
 FROM
   files
 ORDER BY

@@ -10,12 +10,20 @@ import (
 )
 
 const bulkInsertOrderItems = `-- name: BulkInsertOrderItems :exec
-INSERT INTO order_items (quantity, sale_price, order_id, product_id, variant_id)
-SELECT UNNEST($1::int[]),
-			UNNEST($2::int[]),
-			UNNEST($3::bigint[]),
-			UNNEST($4::bigint[]),
-			UNNEST($5::bigint[])
+INSERT INTO
+  order_items (
+    quantity,
+    sale_price,
+    order_id,
+    product_id,
+    variant_id
+  )
+SELECT
+  UNNEST($1::int[]),
+  UNNEST($2::int[]),
+  UNNEST($3::bigint[]),
+  UNNEST($4::bigint[]),
+  UNNEST($5::bigint[])
 `
 
 type BulkInsertOrderItemsParams struct {
@@ -46,15 +54,24 @@ SELECT
   p.name,
   p.slug,
   jsonb_object_agg(o.name, ov.name) AS options
-FROM order_items oi
-JOIN products p ON oi.product_id = p.id
-JOIN variants v ON oi.variant_id = v.id
-JOIN variant_options vo ON vo.variant_id = v.id
-JOIN options o ON o.id = vo.option_id
-JOIN option_values ov ON ov.id = vo.option_value_id
-WHERE oi.order_id = $1
-GROUP BY oi.id, p.id, p.name, p.slug, oi.quantity, oi.sale_price
-ORDER BY oi.id
+FROM
+  order_items oi
+  JOIN products p ON oi.product_id = p.id
+  JOIN variants v ON oi.variant_id = v.id
+  JOIN variant_options vo ON vo.variant_id = v.id
+  JOIN options o ON o.id = vo.option_id
+  JOIN option_values ov ON ov.id = vo.option_value_id
+WHERE
+  oi.order_id = $1
+GROUP BY
+  oi.id,
+  p.id,
+  p.name,
+  p.slug,
+  oi.quantity,
+  oi.sale_price
+ORDER BY
+  oi.id
 `
 
 type GetItemsByOrderIDRow struct {

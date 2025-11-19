@@ -12,10 +12,14 @@ import (
 )
 
 const bulkInsertProductCollection = `-- name: BulkInsertProductCollection :exec
-INSERT INTO product_collections (product_id, collection_id)
-SELECT p.id, c.id
-FROM unnest($1::bigint[]) AS p(id),
-     unnest($2::bigint[]) AS c(id)
+INSERT INTO
+  product_collections (product_id, collection_id)
+SELECT
+  p.id,
+  c.id
+FROM
+  unnest($1::bigint[]) AS p (id),
+  unnest($2::bigint[]) AS c (id)
 ON CONFLICT (product_id, collection_id) DO NOTHING
 `
 
@@ -31,8 +35,15 @@ func (q *Queries) BulkInsertProductCollection(ctx context.Context, arg BulkInser
 
 const deleteCollectionProductsNotInIDsByCollection = `-- name: DeleteCollectionProductsNotInIDsByCollection :exec
 DELETE FROM product_collections
-WHERE collection_id IN (SELECT UNNEST($1::bigint[]))
-  AND product_id NOT IN (SELECT UNNEST($2::bigint[]))
+WHERE
+  collection_id IN (
+    SELECT
+      UNNEST($1::bigint[])
+  )
+  AND product_id NOT IN (
+    SELECT
+      UNNEST($2::bigint[])
+  )
 `
 
 type DeleteCollectionProductsNotInIDsByCollectionParams struct {
@@ -46,7 +57,9 @@ func (q *Queries) DeleteCollectionProductsNotInIDsByCollection(ctx context.Conte
 }
 
 const deleteCollectionsByProductID = `-- name: DeleteCollectionsByProductID :exec
-DELETE FROM product_collections WHERE product_id = $1
+DELETE FROM product_collections
+WHERE
+  product_id = $1
 `
 
 func (q *Queries) DeleteCollectionsByProductID(ctx context.Context, productID int64) error {
@@ -55,7 +68,9 @@ func (q *Queries) DeleteCollectionsByProductID(ctx context.Context, productID in
 }
 
 const deleteProductsByCollectionID = `-- name: DeleteProductsByCollectionID :exec
-DELETE FROM product_collections WHERE collection_id = $1
+DELETE FROM product_collections
+WHERE
+  collection_id = $1
 `
 
 func (q *Queries) DeleteProductsByCollectionID(ctx context.Context, collectionID int64) error {
@@ -106,43 +121,83 @@ SELECT
   c.file,
   c.slug,
   (
-    SELECT COALESCE(json_agg(json_build_object(
-      'id', p.id,
-      'name', p.name,
-      'slug', p.slug,
-      'sale_price', p.sale_price,
-      'origin_price', p.origin_price,
-      'files', (
-        SELECT COALESCE(json_agg(pf.name), '[]'::json)
-        FROM product_files pf
-        WHERE pf.product_id = p.id
-      ),
-      'variants', (
-        SELECT COALESCE(json_agg(json_build_object(
-          'id', v.id,
-          'sku', v.sku,
-          'origin_price', v.origin_price,
-          'sale_price', v.sale_price,
-          'options', (
-            SELECT COALESCE(jsonb_object_agg(o.name, ov.name), '{}'::jsonb)
-            FROM variant_options vo
-            JOIN options o ON o.id = vo.option_id
-            JOIN option_values ov ON ov.id = vo.option_value_id
-            WHERE vo.variant_id = v.id
+    SELECT
+      COALESCE(
+        json_agg(
+          json_build_object(
+            'id',
+            p.id,
+            'name',
+            p.name,
+            'slug',
+            p.slug,
+            'sale_price',
+            p.sale_price,
+            'origin_price',
+            p.origin_price,
+            'files',
+            (
+              SELECT
+                COALESCE(json_agg(pf.name), '[]'::json)
+              FROM
+                product_files pf
+              WHERE
+                pf.product_id = p.id
+            ),
+            'variants',
+            (
+              SELECT
+                COALESCE(
+                  json_agg(
+                    json_build_object(
+                      'id',
+                      v.id,
+                      'sku',
+                      v.sku,
+                      'origin_price',
+                      v.origin_price,
+                      'sale_price',
+                      v.sale_price,
+                      'options',
+                      (
+                        SELECT
+                          COALESCE(jsonb_object_agg(o.name, ov.name), '{}'::jsonb)
+                        FROM
+                          variant_options vo
+                          JOIN options o ON o.id = vo.option_id
+                          JOIN option_values ov ON ov.id = vo.option_value_id
+                        WHERE
+                          vo.variant_id = v.id
+                      )
+                    )
+                  ),
+                  '[]'::json
+                )
+              FROM
+                variants v
+              WHERE
+                v.product_id = p.id
+            )
           )
-        )), '[]'::json)
-        FROM variants v
-        WHERE v.product_id = p.id
+        ),
+        '[]'::json
       )
-    )), '[]'::json)
-    FROM products p
-    JOIN product_collections pc ON pc.product_id = p.id
-    WHERE pc.collection_id = c.id
-    LIMIT $1 OFFSET $2
+    FROM
+      products p
+      JOIN product_collections pc ON pc.product_id = p.id
+    WHERE
+      pc.collection_id = c.id
+    LIMIT
+      $1
+    OFFSET
+      $2
   ) AS products
-FROM collections c
-WHERE c.layout = 'home'
-ORDER BY c.id
+FROM
+  collections c
+WHERE
+  c.layout = 'home'
+ORDER BY
+  c.id
 `
 
 type GetHomeCollectionsWithProductsAndVariantsParams struct {
@@ -192,31 +247,51 @@ SELECT
   p.origin_price,
   p.sale_price,
   (
-    SELECT COALESCE(json_agg(pf.name), '[]'::json)
-    FROM product_files pf
-    WHERE pf.product_id = p.id
+    SELECT
+      COALESCE(json_agg(pf.name), '[]'::json)
+    FROM
+      product_files pf
+    WHERE
+      pf.product_id = p.id
   ) as files,
   (
-    SELECT COALESCE(json_agg(json_build_object(
-      'id', v.id,
-      'sku', v.sku,
-      'origin_price', v.origin_price,
-      'sale_price', v.sale_price,
-      'options', (
-        SELECT COALESCE(jsonb_object_agg(o.name, ov.name), '{}'::jsonb)
-        FROM variant_options vo
-        JOIN options o ON o.id = vo.option_id
-        JOIN option_values ov ON ov.id = vo.option_value_id
-        WHERE vo.variant_id = v.id
+    SELECT
+      COALESCE(
+        json_agg(
+          json_build_object(
+            'id',
+            v.id,
+            'sku',
+            v.sku,
+            'origin_price',
+            v.origin_price,
+            'sale_price',
+            v.sale_price,
+            'options',
+            (
+              SELECT
+                COALESCE(jsonb_object_agg(o.name, ov.name), '{}'::jsonb)
+              FROM
+                variant_options vo
+                JOIN options o ON o.id = vo.option_id
+                JOIN option_values ov ON ov.id = vo.option_value_id
+              WHERE
+                vo.variant_id = v.id
+            )
+          )
+        ),
+        '[]'::json
       )
-    )), '[]'::json)
-    FROM variants v
-    WHERE v.product_id = p.id
+    FROM
+      variants v
+    WHERE
+      v.product_id = p.id
   ) as variants
 FROM
   product_collections pc
   LEFT JOIN products p ON pc.product_id = p.id
-WHERE collection_id = $1
+WHERE
+  collection_id = $1
 `
 
 type GetProductsByCollectionRow struct {
@@ -264,7 +339,8 @@ SELECT
 FROM
   product_collections pc
   LEFT JOIN products p ON pc.product_id = p.id
-WHERE collection_id = $1
+WHERE
+  collection_id = $1
 `
 
 type GetProductsByCollectionIDRow struct {

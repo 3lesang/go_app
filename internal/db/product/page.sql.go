@@ -39,7 +39,8 @@ INSERT INTO
   pages (name, slug)
 VALUES
   ($1, $2)
-RETURNING id
+RETURNING
+  id
 `
 
 type CreatePageParams struct {
@@ -55,9 +56,14 @@ func (q *Queries) CreatePage(ctx context.Context, arg CreatePageParams) (int64, 
 }
 
 const getPage = `-- name: GetPage :one
-SELECT id, name, slug
-FROM pages
-WHERE id = $1
+SELECT
+  id,
+  name,
+  slug
+FROM
+  pages
+WHERE
+  id = $1
 `
 
 type GetPageRow struct {
@@ -74,9 +80,14 @@ func (q *Queries) GetPage(ctx context.Context, id int64) (GetPageRow, error) {
 }
 
 const getPageBySlug = `-- name: GetPageBySlug :one
-SELECT id, name, slug
-FROM pages
-WHERE slug = $1
+SELECT
+  id,
+  name,
+  slug
+FROM
+  pages
+WHERE
+  slug = $1
 `
 
 type GetPageBySlugRow struct {
@@ -93,8 +104,12 @@ func (q *Queries) GetPageBySlug(ctx context.Context, slug string) (GetPageBySlug
 }
 
 const getPages = `-- name: GetPages :many
-SELECT id, name, slug
-FROM pages
+SELECT
+  id,
+  name,
+  slug
+FROM
+  pages
 LIMIT
   $1
 OFFSET

@@ -39,7 +39,9 @@ func (q *Queries) BulkInsertProductFiles(ctx context.Context, arg BulkInsertProd
 }
 
 const deleteProductFiles = `-- name: DeleteProductFiles :exec
-DELETE FROM product_files WHERE product_id = $1
+DELETE FROM product_files
+WHERE
+  product_id = $1
 `
 
 func (q *Queries) DeleteProductFiles(ctx context.Context, productID int64) error {

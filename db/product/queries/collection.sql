@@ -30,7 +30,8 @@ SELECT
   id,
   file,
   slug
-FROM collections
+FROM
+  collections
 WHERE
   layout = $1;
 
@@ -42,10 +43,12 @@ SELECT
   slug,
   meta_title,
   meta_description
-FROM collections
+FROM
+  collections
 WHERE
   slug = $1
-LIMIT 1;
+LIMIT
+  1;
 
 -- name: CreateCollection :one
 INSERT INTO
@@ -59,7 +62,8 @@ INSERT INTO
   )
 VALUES
   ($1, $2, $3, $4, $5, $6)
-RETURNING id;
+RETURNING
+  id;
 
 -- name: UpdateCollection :exec
 UPDATE collections

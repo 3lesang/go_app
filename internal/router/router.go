@@ -5,6 +5,7 @@ import (
 	"app/internal/modules/category"
 	"app/internal/modules/collection"
 	"app/internal/modules/customer"
+	"app/internal/modules/discount"
 	"app/internal/modules/file"
 	"app/internal/modules/menu"
 	"app/internal/modules/order"
@@ -36,6 +37,7 @@ func Init(app *fiber.App) {
 
 	productGroup := v1.Group("/products")
 	productGroup.Get("/slug/:slug", product.GetProductBySlugHandler)
+	productGroup.Get("/categories/:id", product.GetProductByCategoryHandler)
 
 	productGroup.Use(jwtware.New(jwtware.Config{
 		SigningKey: jwtware.SigningKey{Key: []byte("jwt")},
@@ -122,4 +124,17 @@ func Init(app *fiber.App) {
 	fileGroup.Get("/", file.GetFilesHandler)
 	fileGroup.Post("/", file.CreateFileHandler)
 	fileGroup.Delete("/", file.DeleteFilesHandler)
+
+	discountGroup := v1.Group("/discounts")
+	discountGroup.Get("/", discount.GetDiscountsHandler)
+	discountGroup.Get("/:id", discount.GetDiscountHandler)
+	discountGroup.Put("/:id", discount.UpdateDiscountHandler)
+	discountGroup.Post("/", discount.CreateDiscountHandler)
+	discountGroup.Delete("/", discount.BulkDeleteDiscountsHandler)
+
+	discountGroup.Post("/:id/targets", discount.CreateDiscountTargetHandler)
+	discountGroup.Post("/:id/effects", discount.CreateDiscountEffectHandler)
+	discountGroup.Post("/:id/conditions", discount.CreateDiscountConditionHandler)
+	discountGroup.Put("/:id/effects/:effectID", discount.UpdateDiscountEffectHandler)
+	discountGroup.Put("/:id/conditions/:conditionID", discount.UpdateDiscountConditionHandler)
 }

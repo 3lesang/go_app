@@ -25,5 +25,12 @@ ORDER BY
 
 -- name: DeleteVariantOptionsNotInIDs :exec
 DELETE FROM variant_options
-WHERE variant_id IN (SELECT UNNEST(@variant_ids::bigint[])) 
-  AND option_value_id NOT IN (SELECT UNNEST(@option_value_ids::bigint[]));
+WHERE
+  variant_id IN (
+    SELECT
+      UNNEST(@variant_ids::bigint[])
+  )
+  AND option_value_id NOT IN (
+    SELECT
+      UNNEST(@option_value_ids::bigint[])
+  );

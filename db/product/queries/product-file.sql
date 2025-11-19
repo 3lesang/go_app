@@ -16,4 +16,6 @@ WHERE
   product_id = $1;
 
 -- name: DeleteProductFiles :exec
-DELETE FROM product_files WHERE product_id = $1;
+DELETE FROM product_files
+WHERE
+  product_id = $1;

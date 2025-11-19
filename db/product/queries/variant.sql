@@ -10,7 +10,8 @@ FROM
   variants
 WHERE
   product_id = $1
-ORDER BY no ASC;
+ORDER BY
+  no ASC;
 
 -- name: CreateVariant :exec
 INSERT INTO
@@ -64,26 +65,28 @@ WHERE
 UPDATE variants AS v
 SET
   origin_price = data.origin_price,
-  sale_price   = data.sale_price,
-  file         = data.file,
-  stock        = data.stock,
-  sku          = data.sku
-FROM (
-  SELECT
-    UNNEST(@ids::bigint[])       AS id,
-    UNNEST(@origin_prices::int[]) AS origin_price,
-    UNNEST(@sale_prices::int[])   AS sale_price,
-    UNNEST(@files::text[])        AS file,
-    UNNEST(@stocks::int[])        AS stock,
-    UNNEST(@skus::text[])         AS sku
-) AS data
-WHERE v.id = data.id
+  sale_price = data.sale_price,
+  file = data.file,
+  stock = data.stock,
+  sku = data.sku
+FROM
+  (
+    SELECT
+      UNNEST(@ids::bigint[]) AS id,
+      UNNEST(@origin_prices::int[]) AS origin_price,
+      UNNEST(@sale_prices::int[]) AS sale_price,
+      UNNEST(@files::text[]) AS file,
+      UNNEST(@stocks::int[]) AS stock,
+      UNNEST(@skus::text[]) AS sku
+  ) AS data
+WHERE
+  v.id = data.id
   AND (
-    v.origin_price IS DISTINCT FROM data.origin_price OR
-    v.sale_price   IS DISTINCT FROM data.sale_price OR
-    v.file         IS DISTINCT FROM data.file OR
-    v.stock        IS DISTINCT FROM data.stock OR
-    v.sku          IS DISTINCT FROM data.sku
+    v.origin_price IS DISTINCT FROM data.origin_price
+    OR v.sale_price IS DISTINCT FROM data.sale_price
+    OR v.file IS DISTINCT FROM data.file
+    OR v.stock IS DISTINCT FROM data.stock
+    OR v.sku IS DISTINCT FROM data.sku
   );
 
 -- name: DeleteVariantsByProductID :exec
@@ -93,5 +96,9 @@ WHERE
 
 -- name: DeleteVariantsNotInIDsByProductID :exec
 DELETE FROM variants
-WHERE product_id = @product_id
-  AND id NOT IN (SELECT UNNEST(@ids::bigint[]));
+WHERE
+  product_id = @product_id
+  AND id NOT IN (
+    SELECT
+      UNNEST(@ids::bigint[])
+  );

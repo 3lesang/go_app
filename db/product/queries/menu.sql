@@ -5,29 +5,44 @@ FROM
   menus;
 
 -- name: GetMenus :many
-SELECT id, name, position
-FROM menus
+SELECT
+  id,
+  name,
+  position
+FROM
+  menus
 LIMIT
   $1
 OFFSET
   $2;
 
 -- name: GetMenu :one
-SELECT id, name, position
-FROM menus
-WHERE id = $1;
+SELECT
+  id,
+  name,
+  position
+FROM
+  menus
+WHERE
+  id = $1;
 
 -- name: GetMenuByPosition :one
-SELECT id, name, position
-FROM menus
-WHERE position = $1;
+SELECT
+  id,
+  name,
+  position
+FROM
+  menus
+WHERE
+  position = $1;
 
 -- name: CreateMenu :one
 INSERT INTO
   menus (name, position)
 VALUES
   ($1, $2)
-RETURNING id;
+RETURNING
+  id;
 
 -- name: UpdateMenu :exec
 UPDATE menus

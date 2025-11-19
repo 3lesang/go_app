@@ -149,16 +149,6 @@ CREATE TABLE IF NOT EXISTS review_files (
   review_id BIGINT NOT NULL REFERENCES reviews (id) on DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS coupons (
-  id BIGSERIAL PRIMARY KEY,
-  code TEXT UNIQUE NOT NULL,
-  description TEXT,
-  discount_percent NUMBERIC(5, 2) CHECK (discount_percent BETWEEN 0 AND 100),
-  valid_from TIMESTAMP,
-  valid_until TIMESTAMP,
-  is_active BOOLEAN DEFAULT TRUE
-);
-
 CREATE TABLE IF NOT EXISTS files (
   id BIGSERIAL PRIMARY KEY,
   name TEXT UNIQUE NOT NULL,
@@ -177,4 +167,53 @@ CREATE TABLE IF NOT EXISTS menus (
   name TEXT NOT NULL,
   position TEXT UNIQUE NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE discounts (
+  id BIGSERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  code TEXT UNIQUE, -- nullable for automatic discounts
+  discount_type TEXT NOT NULL, -- 'code' | 'automatic'
+  status TEXT NOT NULL, -- 'draft' | 'active' | 'scheduled' | 'expired'
+  usage_limit INTEGER, -- limit times used
+  usage_count INTEGER DEFAULT 0,
+  per_customer_limit INTEGER, -- optional per-customer limit
+  starts_at TIMESTAMP NOT NULL,
+  ends_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE discount_conditions (
+  id BIGSERIAL PRIMARY KEY,
+  discount_id BIGINT NOT NULL,
+  condition_type TEXT NOT NULL, -- 'specific_products' | 'specific_collections' | 'order_amount' | 'quantity' | 'customer'
+  operator TEXT NOT NULL, -- 'eq' | 'gt' | 'gte' | 'lt' | 'lte' | 'in' | 'not_in'
+  value TEXT NOT NULL, -- JSON (product IDs, min_subtotal, min_qty, etc)
+  FOREIGN KEY (discount_id) REFERENCES discounts (id) ON DELETE CASCADE
+);
+
+CREATE TABLE discount_effects (
+  id BIGSERIAL PRIMARY KEY,
+  discount_id BIGINT NOT NULL,
+  effect_type TEXT NOT NULL, -- 'percent' | 'fixed' | 'free_shipping' | 'bogo'
+  value TEXT, -- percent: "20", fixed: "5", bogo: JSON {"buy":1, "get":1}
+  applies_to TEXT NOT NULL, -- 'entire_order' | 'specific_products' | 'specific_collections'
+  FOREIGN KEY (discount_id) REFERENCES discounts (id) ON DELETE CASCADE
+);
+
+CREATE TABLE discount_targets (
+  id BIGSERIAL PRIMARY KEY,
+  discount_id BIGINT NOT NULL,
+  target_type TEXT NOT NULL, -- 'specific_products' | 'specific_collections'
+  target_id INTEGER NOT NULL,
+  FOREIGN KEY (discount_id) REFERENCES discounts (id) ON DELETE CASCADE
+);
+
+CREATE TABLE discount_customer_usages (
+  id BIGSERIAL PRIMARY KEY,
+  discount_id BIGINT NOT NULL REFERENCES discounts(id) ON DELETE CASCADE,
+  customer_id BIGINT NOT NULL,
+  used_count INTEGER DEFAULT 0,
+  UNIQUE (discount_id, customer_id)
 );

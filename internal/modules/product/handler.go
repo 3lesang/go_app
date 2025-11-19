@@ -76,7 +76,7 @@ func GetProductHandler(c *fiber.Ctx) error {
 		})
 	}
 	ctx := context.Background()
-	product, _ := db.ProductQueries.GetProduct(ctx, id)
+	product, err := db.ProductQueries.GetProduct(ctx, id)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
@@ -188,6 +188,55 @@ func GetProductBySlugHandler(c *fiber.Ctx) error {
 		})
 	}
 	return c.Status(fiber.StatusOK).JSON(result)
+}
+
+// GetProductByCategoryHandler godoc
+// @Summary      Get a product
+// @Description  Returns a product by category id
+// @Tags         products
+// @Produce      json
+// @Param        id   path      string  true  "Category id"
+// @Param        page      query     int     false  "Page number"  default(1)
+// @Param        page_size query     int     false  "Page size"    default(10)
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /products/categories/{id} [get]
+func GetProductByCategoryHandler(c *fiber.Ctx) error {
+	param := c.Params("id")
+	id, err := strconv.ParseInt(param, 10, 64)
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	pageSize, _ := strconv.Atoi(c.Query("page_size", "10"))
+	offset := (page - 1) * pageSize
+
+	ctx := context.Background()
+	result, err := db.ProductQueries.GetProductsByCategory(ctx, product_db.GetProductsByCategoryParams{
+		CategoryID: pgtype.Int8{Int64: id, Valid: true},
+		Limit:      int32(pageSize),
+		Offset:     int32(offset),
+	})
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	total, err := db.ProductQueries.CountProductsByCategory(ctx, pgtype.Int8{Int64: id, Valid: true})
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	totalPages := int(math.Ceil(float64(total) / float64(pageSize)))
+
+	return c.Status(fiber.StatusOK).JSON(PaginatedResponse[product_db.GetProductsByCategoryRow]{
+		Page:       page,
+		PageSize:   pageSize,
+		TotalItems: total,
+		TotalPages: totalPages,
+		Data:       result,
+	})
 }
 
 // CreateProductHandler godoc

@@ -58,14 +58,15 @@ const bulkUpdateOptionValues = `-- name: BulkUpdateOptionValues :exec
 UPDATE option_values AS ov
 SET
   name = data.name
-FROM (
-  SELECT  UNNEST($1::bigint[]) AS id,
-          UNNEST($2::text[]) AS name
-) AS data
-WHERE ov.id = data.id
-  AND (
-    ov.name IS DISTINCT FROM data.name
-  )
+FROM
+  (
+    SELECT
+      UNNEST($1::bigint[]) AS id,
+      UNNEST($2::text[]) AS name
+  ) AS data
+WHERE
+  ov.id = data.id
+  AND (ov.name IS DISTINCT FROM data.name)
 `
 
 type BulkUpdateOptionValuesParams struct {
@@ -80,8 +81,15 @@ func (q *Queries) BulkUpdateOptionValues(ctx context.Context, arg BulkUpdateOpti
 
 const deleteOptionValuesNotInIDs = `-- name: DeleteOptionValuesNotInIDs :exec
 DELETE FROM option_values
-WHERE option_id IN (SELECT UNNEST($1::bigint[])) 
-  AND id NOT IN (SELECT UNNEST($2::bigint[]))
+WHERE
+  option_id IN (
+    SELECT
+      UNNEST($1::bigint[])
+  )
+  AND id NOT IN (
+    SELECT
+      UNNEST($2::bigint[])
+  )
 `
 
 type DeleteOptionValuesNotInIDsParams struct {
@@ -104,7 +112,8 @@ FROM
   option_values
 WHERE
   option_id = ANY ($1::bigint[])
-ORDER BY no ASC
+ORDER BY
+  no ASC
 `
 
 // Get all option values for a list of options

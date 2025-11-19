@@ -27,7 +27,8 @@ SELECT
   COUNT(*)
 FROM
   reviews
-WHERE product_id = $1
+WHERE
+  product_id = $1
 `
 
 func (q *Queries) CountReviewsByProduct(ctx context.Context, productID pgtype.Int8) (int64, error) {
@@ -39,10 +40,17 @@ func (q *Queries) CountReviewsByProduct(ctx context.Context, productID pgtype.In
 
 const createReview = `-- name: CreateReview :one
 INSERT INTO
-  reviews (rating, comment, has_file, product_id, customer_id)
+  reviews (
+    rating,
+    comment,
+    has_file,
+    product_id,
+    customer_id
+  )
 VALUES
   ($1, $2, $3, $4, $5)
-RETURNING id
+RETURNING
+  id
 `
 
 type CreateReviewParams struct {
@@ -68,10 +76,12 @@ func (q *Queries) CreateReview(ctx context.Context, arg CreateReviewParams) (int
 
 const getAverageRatingByProduct = `-- name: GetAverageRatingByProduct :one
 SELECT
-    AVG(rating) AS average_rating,
-    COUNT(*) AS total_reviews
-FROM reviews
-WHERE product_id = $1
+  AVG(rating) AS average_rating,
+  COUNT(*) AS total_reviews
+FROM
+  reviews
+WHERE
+  product_id = $1
 `
 
 type GetAverageRatingByProductRow struct {
@@ -92,22 +102,26 @@ SELECT
   r.rating,
   r.comment,
   (
-    SELECT COALESCE(json_agg(
-      rf.name
-    ))
-    FROM review_files rf
-    WHERE rf.review_id = r.id
+    SELECT
+      COALESCE(json_agg(rf.name))
+    FROM
+      review_files rf
+    WHERE
+      rf.review_id = r.id
   ) AS files,
   (
-    SELECT COALESCE(json_build_object(
-      'id', c.id,
-      'name' ,c.name,
-      'avatar', c.avatar
-    ), '{}'::json)
-    FROM customers c
-    WHERE c.id = r.customer_id
+    SELECT
+      COALESCE(
+        json_build_object('id', c.id, 'name', c.name, 'avatar', c.avatar),
+        '{}'::json
+      )
+    FROM
+      customers c
+    WHERE
+      c.id = r.customer_id
   ) AS customer
-FROM reviews r
+FROM
+  reviews r
 WHERE
   r.product_id = $1
   AND (
@@ -119,10 +133,16 @@ WHERE
     OR (r.has_file = $3)
   )
 ORDER BY
-  CASE WHEN $4::int = 1 THEN r.created_at END DESC,
-  CASE WHEN $4::int = 0 THEN r.created_at END ASC
-LIMIT $6
-OFFSET $5
+  CASE
+    WHEN $4::int = 1 THEN r.created_at
+  END DESC,
+  CASE
+    WHEN $4::int = 0 THEN r.created_at
+  END ASC
+LIMIT
+  $6
+OFFSET
+  $5
 `
 
 type GetReviewsByProductIDParams struct {

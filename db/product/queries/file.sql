@@ -6,7 +6,8 @@ FROM
 
 -- name: GetFiles :many
 SELECT
-  id, name
+  id,
+  name
 FROM
   files
 ORDER BY
@@ -18,9 +19,7 @@ OFFSET
 
 -- name: BulkInsertFiles :exec
 INSERT INTO
-  files (
-    name
-  )
+  files (name)
 SELECT
   unnest(@names::text[]) as name;
 

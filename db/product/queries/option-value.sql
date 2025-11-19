@@ -21,22 +21,31 @@ FROM
   option_values
 WHERE
   option_id = ANY ($1::bigint[])
-ORDER BY no ASC;
+ORDER BY
+  no ASC;
 
 -- name: BulkUpdateOptionValues :exec
 UPDATE option_values AS ov
 SET
   name = data.name
-FROM (
-  SELECT  UNNEST(@ids::bigint[]) AS id,
-          UNNEST(@names::text[]) AS name
-) AS data
-WHERE ov.id = data.id
-  AND (
-    ov.name IS DISTINCT FROM data.name
-  );
+FROM
+  (
+    SELECT
+      UNNEST(@ids::bigint[]) AS id,
+      UNNEST(@names::text[]) AS name
+  ) AS data
+WHERE
+  ov.id = data.id
+  AND (ov.name IS DISTINCT FROM data.name);
 
 -- name: DeleteOptionValuesNotInIDs :exec
 DELETE FROM option_values
-WHERE option_id IN (SELECT UNNEST(@option_ids::bigint[])) 
-  AND id NOT IN (SELECT UNNEST(@value_ids::bigint[]));
+WHERE
+  option_id IN (
+    SELECT
+      UNNEST(@option_ids::bigint[])
+  )
+  AND id NOT IN (
+    SELECT
+      UNNEST(@value_ids::bigint[])
+  );

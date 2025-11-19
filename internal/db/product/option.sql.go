@@ -15,7 +15,9 @@ INSERT INTO
 SELECT
   unnest($1::text[]),
   unnest($2::int[]),
-  unnest($3::bigint[]) RETURNING id,
+  unnest($3::bigint[])
+RETURNING
+  id,
   name
 `
 
@@ -54,14 +56,15 @@ const bulkUpdateOptions = `-- name: BulkUpdateOptions :exec
 UPDATE options AS o
 SET
   name = data.name
-FROM (
-  SELECT  UNNEST($1::bigint[]) AS id,
-          UNNEST($2::text[]) AS name
-) AS data
-WHERE o.id = data.id
-  AND (
-    o.name IS DISTINCT FROM data.name
-  )
+FROM
+  (
+    SELECT
+      UNNEST($1::bigint[]) AS id,
+      UNNEST($2::text[]) AS name
+  ) AS data
+WHERE
+  o.id = data.id
+  AND (o.name IS DISTINCT FROM data.name)
 `
 
 type BulkUpdateOptionsParams struct {
@@ -75,8 +78,7 @@ func (q *Queries) BulkUpdateOptions(ctx context.Context, arg BulkUpdateOptionsPa
 }
 
 const deleteOptionsByProductID = `-- name: DeleteOptionsByProductID :exec
-DELETE FROM
-  options
+DELETE FROM options
 WHERE
   product_id = $1
 `
@@ -88,8 +90,12 @@ func (q *Queries) DeleteOptionsByProductID(ctx context.Context, productID int64)
 
 const deleteOptionsNotInIDs = `-- name: DeleteOptionsNotInIDs :exec
 DELETE FROM options
-WHERE product_id = $1
-  AND id NOT IN (SELECT UNNEST($2::bigint[]))
+WHERE
+  product_id = $1
+  AND id NOT IN (
+    SELECT
+      UNNEST($2::bigint[])
+  )
 `
 
 type DeleteOptionsNotInIDsParams struct {
@@ -111,7 +117,8 @@ FROM
   options
 WHERE
   product_id = $1
-ORDER BY no ASC
+ORDER BY
+  no ASC
 `
 
 type GetOptionsByProductIDRow struct {

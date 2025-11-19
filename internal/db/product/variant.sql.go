@@ -76,26 +76,28 @@ const bulkUpdateVariants = `-- name: BulkUpdateVariants :exec
 UPDATE variants AS v
 SET
   origin_price = data.origin_price,
-  sale_price   = data.sale_price,
-  file         = data.file,
-  stock        = data.stock,
-  sku          = data.sku
-FROM (
-  SELECT
-    UNNEST($1::bigint[])       AS id,
-    UNNEST($2::int[]) AS origin_price,
-    UNNEST($3::int[])   AS sale_price,
-    UNNEST($4::text[])        AS file,
-    UNNEST($5::int[])        AS stock,
-    UNNEST($6::text[])         AS sku
-) AS data
-WHERE v.id = data.id
+  sale_price = data.sale_price,
+  file = data.file,
+  stock = data.stock,
+  sku = data.sku
+FROM
+  (
+    SELECT
+      UNNEST($1::bigint[]) AS id,
+      UNNEST($2::int[]) AS origin_price,
+      UNNEST($3::int[]) AS sale_price,
+      UNNEST($4::text[]) AS file,
+      UNNEST($5::int[]) AS stock,
+      UNNEST($6::text[]) AS sku
+  ) AS data
+WHERE
+  v.id = data.id
   AND (
-    v.origin_price IS DISTINCT FROM data.origin_price OR
-    v.sale_price   IS DISTINCT FROM data.sale_price OR
-    v.file         IS DISTINCT FROM data.file OR
-    v.stock        IS DISTINCT FROM data.stock OR
-    v.sku          IS DISTINCT FROM data.sku
+    v.origin_price IS DISTINCT FROM data.origin_price
+    OR v.sale_price IS DISTINCT FROM data.sale_price
+    OR v.file IS DISTINCT FROM data.file
+    OR v.stock IS DISTINCT FROM data.stock
+    OR v.sku IS DISTINCT FROM data.sku
   )
 `
 
@@ -171,8 +173,12 @@ func (q *Queries) DeleteVariantsByProductID(ctx context.Context, productID int64
 
 const deleteVariantsNotInIDsByProductID = `-- name: DeleteVariantsNotInIDsByProductID :exec
 DELETE FROM variants
-WHERE product_id = $1
-  AND id NOT IN (SELECT UNNEST($2::bigint[]))
+WHERE
+  product_id = $1
+  AND id NOT IN (
+    SELECT
+      UNNEST($2::bigint[])
+  )
 `
 
 type DeleteVariantsNotInIDsByProductIDParams struct {
@@ -197,7 +203,8 @@ FROM
   variants
 WHERE
   product_id = $1
-ORDER BY no ASC
+ORDER BY
+  no ASC
 `
 
 type GetVariantsByProductIDRow struct {

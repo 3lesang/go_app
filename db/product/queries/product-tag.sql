@@ -14,4 +14,6 @@ WHERE
   product_id = $1;
 
 -- name: DeleteProductTags :exec
-DELETE FROM product_tags WHERE product_id = $1;
+DELETE FROM product_tags
+WHERE
+  product_id = $1;

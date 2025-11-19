@@ -1,3 +1,9 @@
+-- name: CountCategories :one
+SELECT
+  COUNT(*)
+FROM
+  categories;
+
 -- name: GetCategories :many
 SELECT
   id,
@@ -6,7 +12,11 @@ SELECT
 FROM
   categories
 ORDER BY
-  id;
+  id
+LIMIT
+  $1
+OFFSET
+  $2;
 
 -- name: GetCategory :one
 SELECT

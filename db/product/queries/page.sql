@@ -5,29 +5,44 @@ FROM
   pages;
 
 -- name: GetPages :many
-SELECT id, name, slug
-FROM pages
+SELECT
+  id,
+  name,
+  slug
+FROM
+  pages
 LIMIT
   $1
 OFFSET
   $2;
 
 -- name: GetPage :one
-SELECT id, name, slug
-FROM pages
-WHERE id = $1;
+SELECT
+  id,
+  name,
+  slug
+FROM
+  pages
+WHERE
+  id = $1;
 
 -- name: GetPageBySlug :one
-SELECT id, name, slug
-FROM pages
-WHERE slug = $1;
+SELECT
+  id,
+  name,
+  slug
+FROM
+  pages
+WHERE
+  slug = $1;
 
 -- name: CreatePage :one
 INSERT INTO
   pages (name, slug)
 VALUES
   ($1, $2)
-RETURNING id;
+RETURNING
+  id;
 
 -- name: UpdatePage :exec
 UPDATE pages

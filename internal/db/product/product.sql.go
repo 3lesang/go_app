@@ -36,6 +36,22 @@ func (q *Queries) CountProducts(ctx context.Context) (int64, error) {
 	return count, err
 }
 
+const countProductsByCategory = `-- name: CountProductsByCategory :one
+SELECT
+  COUNT(*)
+FROM
+  products
+WHERE
+  category_id = $1
+`
+
+func (q *Queries) CountProductsByCategory(ctx context.Context, categoryID pgtype.Int8) (int64, error) {
+	row := q.db.QueryRow(ctx, countProductsByCategory, categoryID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createProduct = `-- name: CreateProduct :one
 INSERT INTO
   products (
@@ -138,49 +154,79 @@ SELECT
   p.category_id,
   p.is_active,
   (
-    SELECT COALESCE(json_agg(pf.name), '[]'::json)
-    FROM product_files pf
-    WHERE pf.product_id = p.id
+    SELECT
+      COALESCE(json_agg(pf.name), '[]'::json)
+    FROM
+      product_files pf
+    WHERE
+      pf.product_id = p.id
   ) as files,
   (
-    SELECT COALESCE(json_agg(json_build_object(
-      'id', o.id,
-      'name', o.name,
-      'values', (
-        SELECT COALESCE(json_agg(json_build_object(
-            'id', ov.name,
-            'name', ov.name
-          )), '[]'::json)
-        FROM option_values ov
-        WHERE ov.option_id = o.id
-        )
-      )), '[]'::json)
-    FROM options o
-    WHERE o.product_id = p.id
+    SELECT
+      COALESCE(
+        json_agg(
+          json_build_object(
+            'id',
+            o.id,
+            'name',
+            o.name,
+            'values',
+            (
+              SELECT
+                COALESCE(
+                  json_agg(json_build_object('id', ov.name, 'name', ov.name)),
+                  '[]'::json
+                )
+              FROM
+                option_values ov
+              WHERE
+                ov.option_id = o.id
+            )
+          )
+        ),
+        '[]'::json
+      )
+    FROM
+      options o
+    WHERE
+      o.product_id = p.id
   ) as options,
   (
-    SELECT COALESCE(
-      json_agg(
-        json_build_object(
-          'id', v.id,
-          'sku', v.sku,
-          'origin_price', v.origin_price,
-          'sale_price', v.sale_price,
-          'file', v.file,
-          'options', (
-            SELECT COALESCE(jsonb_object_agg(o.name, ov.name), '{}'::jsonb)
-            FROM variant_options vo
-            JOIN options o ON o.id = vo.option_id
-            JOIN option_values ov ON ov.id = vo.option_value_id
-            WHERE vo.variant_id = v.id
+    SELECT
+      COALESCE(
+        json_agg(
+          json_build_object(
+            'id',
+            v.id,
+            'sku',
+            v.sku,
+            'origin_price',
+            v.origin_price,
+            'sale_price',
+            v.sale_price,
+            'file',
+            v.file,
+            'options',
+            (
+              SELECT
+                COALESCE(jsonb_object_agg(o.name, ov.name), '{}'::jsonb)
+              FROM
+                variant_options vo
+                JOIN options o ON o.id = vo.option_id
+                JOIN option_values ov ON ov.id = vo.option_value_id
+              WHERE
+                vo.variant_id = v.id
+            )
           )
-        )
-        ORDER BY v.sale_price ASC
-      ),
-      '[]'::json
-    )
-    FROM variants v
-    WHERE v.product_id = p.id
+          ORDER BY
+            v.sale_price ASC
+        ),
+        '[]'::json
+      )
+    FROM
+      variants v
+    WHERE
+      v.product_id = p.id
   ) AS variants
 FROM
   products p
@@ -279,6 +325,60 @@ func (q *Queries) GetProducts(ctx context.Context, arg GetProductsParams) ([]Get
 			&i.IsActive,
 			&i.File,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getProductsByCategory = `-- name: GetProductsByCategory :many
+SELECT
+  p.id,
+  p.name,
+  (
+    SELECT
+      COALESCE(json_agg(pf.name))
+    FROM
+      product_files pf
+    WHERE
+      pf.product_id = p.id
+  ) as files
+FROM
+  products p
+WHERE
+  category_id = $3
+LIMIT
+  $1
+OFFSET
+  $2
+`
+
+type GetProductsByCategoryParams struct {
+	Limit      int32       `json:"limit"`
+	Offset     int32       `json:"offset"`
+	CategoryID pgtype.Int8 `json:"category_id"`
+}
+
+type GetProductsByCategoryRow struct {
+	ID    int64       `json:"id"`
+	Name  string      `json:"name"`
+	Files interface{} `json:"files"`
+}
+
+func (q *Queries) GetProductsByCategory(ctx context.Context, arg GetProductsByCategoryParams) ([]GetProductsByCategoryRow, error) {
+	rows, err := q.db.Query(ctx, getProductsByCategory, arg.Limit, arg.Offset, arg.CategoryID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetProductsByCategoryRow
+	for rows.Next() {
+		var i GetProductsByCategoryRow
+		if err := rows.Scan(&i.ID, &i.Name, &i.Files); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

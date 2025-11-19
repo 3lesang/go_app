@@ -31,8 +31,15 @@ func (q *Queries) BulkInsertVariantOption(ctx context.Context, arg BulkInsertVar
 
 const deleteVariantOptionsNotInIDs = `-- name: DeleteVariantOptionsNotInIDs :exec
 DELETE FROM variant_options
-WHERE variant_id IN (SELECT UNNEST($1::bigint[])) 
-  AND option_value_id NOT IN (SELECT UNNEST($2::bigint[]))
+WHERE
+  variant_id IN (
+    SELECT
+      UNNEST($1::bigint[])
+  )
+  AND option_value_id NOT IN (
+    SELECT
+      UNNEST($2::bigint[])
+  )
 `
 
 type DeleteVariantOptionsNotInIDsParams struct {

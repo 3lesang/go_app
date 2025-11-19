@@ -23,9 +23,12 @@ func (q *Queries) BulkDeleteOrders(ctx context.Context, dollar_1 []int64) error 
 }
 
 const checkOrderCreated = `-- name: CheckOrderCreated :one
-SELECT id
-FROM orders
-WHERE id = $1
+SELECT
+  id
+FROM
+  orders
+WHERE
+  id = $1
 `
 
 func (q *Queries) CheckOrderCreated(ctx context.Context, id int64) (int64, error) {
@@ -50,10 +53,15 @@ func (q *Queries) CountOrders(ctx context.Context) (int64, error) {
 
 const createOrder = `-- name: CreateOrder :one
 INSERT INTO
-  orders (total_amount, discount_amount, shipping_address_id)
+  orders (
+    total_amount,
+    discount_amount,
+    shipping_address_id
+  )
 VALUES
   ($1, $2, $3)
-RETURNING id
+RETURNING
+  id
 `
 
 type CreateOrderParams struct {
@@ -70,10 +78,17 @@ func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) (int64
 }
 
 const getOrder = `-- name: GetOrder :one
-SELECT o.total_amount, o.discount_amount, a.full_name, a.phone, a.address_line
-FROM orders o
+SELECT
+  o.total_amount,
+  o.discount_amount,
+  a.full_name,
+  a.phone,
+  a.address_line
+FROM
+  orders o
   LEFT JOIN addresses a ON o.shipping_address_id = a.id
-WHERE o.id = $1
+WHERE
+  o.id = $1
 `
 
 type GetOrderRow struct {
@@ -98,8 +113,13 @@ func (q *Queries) GetOrder(ctx context.Context, id int64) (GetOrderRow, error) {
 }
 
 const getOrders = `-- name: GetOrders :many
-SELECT id, total_amount, discount_amount, created_at
-FROM orders
+SELECT
+  id,
+  total_amount,
+  discount_amount,
+  created_at
+FROM
+  orders
 LIMIT
   $1
 OFFSET

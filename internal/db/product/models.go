@@ -47,16 +47,6 @@ type Collection struct {
 	UpdatedAt       pgtype.Timestamp `json:"updated_at"`
 }
 
-type Coupon struct {
-	ID              int64            `json:"id"`
-	Code            string           `json:"code"`
-	Description     pgtype.Text      `json:"description"`
-	DiscountPercent interface{}      `json:"discount_percent"`
-	ValidFrom       pgtype.Timestamp `json:"valid_from"`
-	ValidUntil      pgtype.Timestamp `json:"valid_until"`
-	IsActive        pgtype.Bool      `json:"is_active"`
-}
-
 type Customer struct {
 	ID        int64            `json:"id"`
 	Name      string           `json:"name"`
@@ -65,6 +55,51 @@ type Customer struct {
 	Email     pgtype.Text      `json:"email"`
 	Password  string           `json:"password"`
 	CreatedAt pgtype.Timestamp `json:"created_at"`
+}
+
+type Discount struct {
+	ID               int64            `json:"id"`
+	Title            string           `json:"title"`
+	Code             pgtype.Text      `json:"code"`
+	DiscountType     string           `json:"discount_type"`
+	Status           string           `json:"status"`
+	UsageLimit       pgtype.Int4      `json:"usage_limit"`
+	UsageCount       pgtype.Int4      `json:"usage_count"`
+	PerCustomerLimit pgtype.Int4      `json:"per_customer_limit"`
+	StartsAt         pgtype.Timestamp `json:"starts_at"`
+	EndsAt           pgtype.Timestamp `json:"ends_at"`
+	CreatedAt        pgtype.Timestamp `json:"created_at"`
+	UpdatedAt        pgtype.Timestamp `json:"updated_at"`
+}
+
+type DiscountCondition struct {
+	ID            int64  `json:"id"`
+	DiscountID    int64  `json:"discount_id"`
+	ConditionType string `json:"condition_type"`
+	Operator      string `json:"operator"`
+	Value         string `json:"value"`
+}
+
+type DiscountCustomerUsage struct {
+	ID         int64       `json:"id"`
+	DiscountID int64       `json:"discount_id"`
+	CustomerID int64       `json:"customer_id"`
+	UsedCount  pgtype.Int4 `json:"used_count"`
+}
+
+type DiscountEffect struct {
+	ID         int64       `json:"id"`
+	DiscountID int64       `json:"discount_id"`
+	EffectType string      `json:"effect_type"`
+	Value      pgtype.Text `json:"value"`
+	AppliesTo  string      `json:"applies_to"`
+}
+
+type DiscountTarget struct {
+	ID         int64  `json:"id"`
+	DiscountID int64  `json:"discount_id"`
+	TargetType string `json:"target_type"`
+	TargetID   int32  `json:"target_id"`
 }
 
 type File struct {

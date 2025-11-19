@@ -20,6 +20,20 @@ func (q *Queries) BulkDeleteCategories(ctx context.Context, dollar_1 []int64) er
 	return err
 }
 
+const countCategories = `-- name: CountCategories :one
+SELECT
+  COUNT(*)
+FROM
+  categories
+`
+
+func (q *Queries) CountCategories(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, countCategories)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createCategory = `-- name: CreateCategory :exec
 INSERT INTO
   categories (name, slug)
@@ -46,7 +60,16 @@ FROM
   categories
 ORDER BY
   id
+LIMIT
+  $1
+OFFSET
+  $2
 `
+
+type GetCategoriesParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
 
 type GetCategoriesRow struct {
 	ID   int64  `json:"id"`
@@ -54,8 +77,8 @@ type GetCategoriesRow struct {
 	Slug string `json:"slug"`
 }
 
-func (q *Queries) GetCategories(ctx context.Context) ([]GetCategoriesRow, error) {
-	rows, err := q.db.Query(ctx, getCategories)
+func (q *Queries) GetCategories(ctx context.Context, arg GetCategoriesParams) ([]GetCategoriesRow, error) {
+	rows, err := q.db.Query(ctx, getCategories, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

@@ -151,6 +151,110 @@ definitions:
         example: 13
         type: integer
     type: object
+  discount.BulkDeleteDiscountsRequest:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
+    required:
+    - ids
+    type: object
+  discount.CreateDiscountConditionRequest:
+    properties:
+      condition_type:
+        type: string
+      operator:
+        type: string
+      value:
+        type: string
+    type: object
+  discount.CreateDiscountEffectRequest:
+    properties:
+      applies_to:
+        type: string
+      effect_type:
+        type: string
+      value:
+        type: string
+    type: object
+  discount.CreateDiscountRequest:
+    properties:
+      code:
+        type: string
+      discount_type:
+        enum:
+        - code
+        - automatic
+        type: string
+      ends_at:
+        type: string
+      per_customer_limit:
+        type: integer
+      starts_at:
+        type: string
+      status:
+        enum:
+        - draft
+        - active
+        - scheduled
+        - expired
+        type: string
+      title:
+        type: string
+      usage_limit:
+        type: integer
+    required:
+    - discount_type
+    - starts_at
+    - status
+    type: object
+  discount.CreateDiscountTargetRequest:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
+      target_type:
+        type: string
+    type: object
+  discount.PaginatedResponse-any:
+    properties:
+      data:
+        items: {}
+        type: array
+      page:
+        type: integer
+      page_size:
+        type: integer
+      total_items:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  discount.UpdateDiscountRequest:
+    properties:
+      ends_at:
+        type: string
+      per_customer_limit:
+        type: integer
+      starts_at:
+        type: string
+      status:
+        enum:
+        - draft
+        - active
+        - scheduled
+        - expired
+        type: string
+      title:
+        type: string
+      usage_limit:
+        type: integer
+    required:
+    - status
+    - title
+    type: object
   file.CreateFileRequest:
     properties:
       names:
@@ -821,6 +925,17 @@ paths:
       - categories
     get:
       description: Returns a list of categories
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
       produces:
       - application/json
       responses:
@@ -1321,6 +1436,391 @@ paths:
       summary: Create a new customer
       tags:
       - customers
+  /discounts:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes multiple discounts by IDs
+      parameters:
+      - description: IDs to delete
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/discount.BulkDeleteDiscountsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Bulk delete discounts
+      tags:
+      - discounts
+    get:
+      description: Returns a paginated list of discounts
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/discount.PaginatedResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get discounts list
+      tags:
+      - discounts
+    post:
+      consumes:
+      - application/json
+      description: Creates a discount
+      parameters:
+      - description: Discount data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/discount.CreateDiscountRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            format: int64
+            type: integer
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new discount
+      tags:
+      - discounts
+  /discounts/{id}:
+    get:
+      description: Returns a discount by ID
+      parameters:
+      - description: Discount ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a discount by ID
+      tags:
+      - discounts
+    put:
+      consumes:
+      - application/json
+      description: Updates a discount by ID
+      parameters:
+      - description: Discount ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/discount.UpdateDiscountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a discount
+      tags:
+      - discounts
+  /discounts/{id}/conditions:
+    post:
+      consumes:
+      - application/json
+      description: Creates discount condition
+      parameters:
+      - description: Discount data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/discount.CreateDiscountConditionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create discount condition
+      tags:
+      - discounts
+  /discounts/{id}/conditions/{conditionID}:
+    put:
+      consumes:
+      - application/json
+      description: Updates a discount condition by ID
+      parameters:
+      - description: Discount ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/discount.UpdateDiscountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a discount condition
+      tags:
+      - discounts
+  /discounts/{id}/effects:
+    post:
+      consumes:
+      - application/json
+      description: Creates discount effect
+      parameters:
+      - description: Discount data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/discount.CreateDiscountEffectRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create discount effect
+      tags:
+      - discounts
+  /discounts/{id}/effects/{effectID}:
+    put:
+      consumes:
+      - application/json
+      description: Updates a discount effect by ID
+      parameters:
+      - description: Discount ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/discount.UpdateDiscountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a discount effect
+      tags:
+      - discounts
+  /discounts/{id}/targets:
+    post:
+      consumes:
+      - application/json
+      description: Creates discount target
+      parameters:
+      - description: Discount data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/discount.CreateDiscountTargetRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create discount target
+      tags:
+      - discounts
   /files:
     delete:
       consumes:
@@ -2418,6 +2918,55 @@ paths:
       security:
       - BearerAuth: []
       summary: Update a product
+      tags:
+      - products
+  /products/categories/{id}:
+    get:
+      description: Returns a product by category id
+      parameters:
+      - description: Category id
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a product
       tags:
       - products
   /products/slug/{slug}:

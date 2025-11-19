@@ -39,7 +39,8 @@ INSERT INTO
   customers (name, phone, password)
 VALUES
   ($1, $2, $3)
-RETURNING id
+RETURNING
+  id
 `
 
 type CreateCustomerParams struct {
@@ -56,8 +57,11 @@ func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) 
 }
 
 const getCustomers = `-- name: GetCustomers :many
-SELECT id, name
-FROM customers
+SELECT
+  id,
+  name
+FROM
+  customers
 LIMIT
   $1
 OFFSET
