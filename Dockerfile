@@ -19,4 +19,4 @@ COPY --from=builder /app/server /server
 COPY --from=builder /app/docs /docs
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-ENTRYPOINT ["/server"]
+ENTRYPOINT ["./server"]
