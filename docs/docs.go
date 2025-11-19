@@ -4227,8 +4227,7 @@ const docTemplate = `{
         "discount.UpdateDiscountRequest": {
             "type": "object",
             "required": [
-                "status",
-                "title"
+                "status"
             ],
             "properties": {
                 "ends_at": {

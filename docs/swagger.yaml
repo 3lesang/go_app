@@ -253,7 +253,6 @@ definitions:
         type: integer
     required:
     - status
-    - title
     type: object
   file.CreateFileRequest:
     properties:
