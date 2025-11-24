@@ -49,6 +49,26 @@ SELECT
       COALESCE(
         json_agg(
           json_build_object(
+            'id', o.id,
+            'name', o.name,
+            'values',
+              (
+                SELECT COALESCE(json_agg(ov.name), '[]'::json)
+                FROM option_values ov
+                WHERE ov.option_id = o.id
+              )
+          )
+        ),
+        '[]'::json
+      )
+    FROM options o
+    WHERE o.product_id = p.id
+  ) AS options,
+  (
+    SELECT
+      COALESCE(
+        json_agg(
+          json_build_object(
             'id',
             v.id,
             'sku',
@@ -112,6 +132,26 @@ SELECT
                 product_files pf
               WHERE
                 pf.product_id = p.id
+            ),
+            'options', (
+              SELECT
+                COALESCE(
+                  json_agg(
+                    json_build_object(
+                      'id', o.id,
+                      'name', o.name,
+                      'values',
+                        (
+                          SELECT COALESCE(json_agg(ov.name), '[]'::json)
+                          FROM option_values ov
+                          WHERE ov.option_id = o.id
+                        )
+                    )
+                  ),
+                  '[]'::json
+                )
+              FROM options o
+              WHERE o.product_id = p.id
             ),
             'variants',
             (

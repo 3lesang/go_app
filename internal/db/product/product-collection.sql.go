@@ -144,6 +144,26 @@ SELECT
               WHERE
                 pf.product_id = p.id
             ),
+            'options', (
+              SELECT
+                COALESCE(
+                  json_agg(
+                    json_build_object(
+                      'id', o.id,
+                      'name', o.name,
+                      'values',
+                        (
+                          SELECT COALESCE(json_agg(ov.name), '[]'::json)
+                          FROM option_values ov
+                          WHERE ov.option_id = o.id
+                        )
+                    )
+                  ),
+                  '[]'::json
+                )
+              FROM options o
+              WHERE o.product_id = p.id
+            ),
             'variants',
             (
               SELECT
@@ -259,6 +279,26 @@ SELECT
       COALESCE(
         json_agg(
           json_build_object(
+            'id', o.id,
+            'name', o.name,
+            'values',
+              (
+                SELECT COALESCE(json_agg(ov.name), '[]'::json)
+                FROM option_values ov
+                WHERE ov.option_id = o.id
+              )
+          )
+        ),
+        '[]'::json
+      )
+    FROM options o
+    WHERE o.product_id = p.id
+  ) AS options,
+  (
+    SELECT
+      COALESCE(
+        json_agg(
+          json_build_object(
             'id',
             v.id,
             'sku',
@@ -301,6 +341,7 @@ type GetProductsByCollectionRow struct {
 	OriginPrice pgtype.Int4 `json:"origin_price"`
 	SalePrice   pgtype.Int4 `json:"sale_price"`
 	Files       interface{} `json:"files"`
+	Options     interface{} `json:"options"`
 	Variants    interface{} `json:"variants"`
 }
 
@@ -320,6 +361,7 @@ func (q *Queries) GetProductsByCollection(ctx context.Context, collectionID int6
 			&i.OriginPrice,
 			&i.SalePrice,
 			&i.Files,
+			&i.Options,
 			&i.Variants,
 		); err != nil {
 			return nil, err
