@@ -980,6 +980,121 @@ const docTemplate = `{
                 }
             }
         },
+        "/customers/login": {
+            "post": {
+                "description": "Authenticates a customer using phone and password.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customers"
+                ],
+                "summary": "Customer login",
+                "parameters": [
+                    {
+                        "description": "Custoerm login request",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/customer.CustomerLoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Login successful",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid credentials",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/customers/register": {
+            "post": {
+                "description": "Creates a new customer and returns the created customer",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customers"
+                ],
+                "summary": "Create a new customer",
+                "parameters": [
+                    {
+                        "description": "Create data",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/customer.CreateCustomerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/discounts": {
             "get": {
                 "security": [
@@ -1123,6 +1238,180 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/discounts/public": {
+            "get": {
+                "description": "Returns list valid discount",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "discounts"
+                ],
+                "summary": "Get list valid discounts",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/discounts/usage": {
+            "post": {
+                "description": "Increase used_count by 1 for a given discount and customer",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "discounts"
+                ],
+                "summary": "Increment discount usage for customer",
+                "parameters": [
+                    {
+                        "description": "Discount and Customer IDs",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/discount.UpsertCustomerUsageRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "message: updated",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/discounts/{discount_id}/customers/{customer_id}/usage": {
+            "get": {
+                "description": "Returns how many times a customer used the discount",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "discounts"
+                ],
+                "summary": "Get usage count for a discount by customer",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Discount ID",
+                        "name": "discount_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Customer ID",
+                        "name": "customer_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "used_count",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -4067,6 +4356,17 @@ const docTemplate = `{
                 }
             }
         },
+        "customer.CustomerLoginRequest": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
         "customer.DeleteCustomersRequest": {
             "type": "object",
             "properties": {
@@ -4156,6 +4456,9 @@ const docTemplate = `{
                 "code": {
                     "type": "string"
                 },
+                "description": {
+                    "type": "string"
+                },
                 "discount_type": {
                     "type": "string",
                     "enum": [
@@ -4230,6 +4533,9 @@ const docTemplate = `{
                 "status"
             ],
             "properties": {
+                "description": {
+                    "type": "string"
+                },
                 "ends_at": {
                     "type": "string"
                 },
@@ -4252,6 +4558,21 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "usage_limit": {
+                    "type": "integer"
+                }
+            }
+        },
+        "discount.UpsertCustomerUsageRequest": {
+            "type": "object",
+            "required": [
+                "customer_id",
+                "discount_id"
+            ],
+            "properties": {
+                "customer_id": {
+                    "type": "integer"
+                },
+                "discount_id": {
                     "type": "integer"
                 }
             }

@@ -7,7 +7,8 @@ FROM
 -- name: GetCustomers :many
 SELECT
   id,
-  name
+  name,
+  phone
 FROM
   customers
 LIMIT
@@ -27,3 +28,8 @@ RETURNING
 DELETE FROM customers
 WHERE
   id = ANY ($1::bigint[]);
+
+-- name: GetCustomerByPhone :one
+SELECT id, name, phone, password
+FROM customers
+WHERE phone = $1;

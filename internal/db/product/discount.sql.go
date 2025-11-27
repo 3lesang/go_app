@@ -35,13 +35,14 @@ func (q *Queries) CountDiscounts(ctx context.Context) (int64, error) {
 
 const createDiscount = `-- name: CreateDiscount :one
 INSERT INTO discounts (
-  title, code, discount_type, status, usage_limit, per_customer_limit, starts_at, ends_at
-) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+  title, description, code, discount_type, status, usage_limit, per_customer_limit, starts_at, ends_at
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 RETURNING id
 `
 
 type CreateDiscountParams struct {
 	Title            string           `json:"title"`
+	Description      pgtype.Text      `json:"description"`
 	Code             pgtype.Text      `json:"code"`
 	DiscountType     string           `json:"discount_type"`
 	Status           string           `json:"status"`
@@ -54,6 +55,7 @@ type CreateDiscountParams struct {
 func (q *Queries) CreateDiscount(ctx context.Context, arg CreateDiscountParams) (int64, error) {
 	row := q.db.QueryRow(ctx, createDiscount,
 		arg.Title,
+		arg.Description,
 		arg.Code,
 		arg.DiscountType,
 		arg.Status,
@@ -68,7 +70,8 @@ func (q *Queries) CreateDiscount(ctx context.Context, arg CreateDiscountParams) 
 }
 
 const getDiscountByCode = `-- name: GetDiscountByCode :one
-SELECT id, title, code, discount_type, status, usage_limit, usage_count, per_customer_limit, starts_at, ends_at, created_at, updated_at FROM discounts
+SELECT id, title, description, code, discount_type, status, usage_limit, per_customer_limit, starts_at, ends_at
+FROM discounts
 WHERE code = $1
   AND starts_at <= NOW()
   AND (ends_at IS NULL OR ends_at >= NOW())
@@ -76,28 +79,39 @@ WHERE code = $1
   AND (usage_limit IS NULL OR usage_count < usage_limit)
 `
 
-func (q *Queries) GetDiscountByCode(ctx context.Context, code pgtype.Text) (Discount, error) {
+type GetDiscountByCodeRow struct {
+	ID               int64            `json:"id"`
+	Title            string           `json:"title"`
+	Description      pgtype.Text      `json:"description"`
+	Code             pgtype.Text      `json:"code"`
+	DiscountType     string           `json:"discount_type"`
+	Status           string           `json:"status"`
+	UsageLimit       pgtype.Int4      `json:"usage_limit"`
+	PerCustomerLimit pgtype.Int4      `json:"per_customer_limit"`
+	StartsAt         pgtype.Timestamp `json:"starts_at"`
+	EndsAt           pgtype.Timestamp `json:"ends_at"`
+}
+
+func (q *Queries) GetDiscountByCode(ctx context.Context, code pgtype.Text) (GetDiscountByCodeRow, error) {
 	row := q.db.QueryRow(ctx, getDiscountByCode, code)
-	var i Discount
+	var i GetDiscountByCodeRow
 	err := row.Scan(
 		&i.ID,
 		&i.Title,
+		&i.Description,
 		&i.Code,
 		&i.DiscountType,
 		&i.Status,
 		&i.UsageLimit,
-		&i.UsageCount,
 		&i.PerCustomerLimit,
 		&i.StartsAt,
 		&i.EndsAt,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const getDiscountByID = `-- name: GetDiscountByID :one
-SELECT id, title, code, discount_type, status, usage_limit, per_customer_limit, starts_at, ends_at
+SELECT id, title, description, code, discount_type, status, usage_limit, per_customer_limit, starts_at, ends_at
 FROM discounts
 WHERE id = $1
 `
@@ -105,6 +119,7 @@ WHERE id = $1
 type GetDiscountByIDRow struct {
 	ID               int64            `json:"id"`
 	Title            string           `json:"title"`
+	Description      pgtype.Text      `json:"description"`
 	Code             pgtype.Text      `json:"code"`
 	DiscountType     string           `json:"discount_type"`
 	Status           string           `json:"status"`
@@ -120,6 +135,7 @@ func (q *Queries) GetDiscountByID(ctx context.Context, id int64) (GetDiscountByI
 	err := row.Scan(
 		&i.ID,
 		&i.Title,
+		&i.Description,
 		&i.Code,
 		&i.DiscountType,
 		&i.Status,
@@ -133,7 +149,7 @@ func (q *Queries) GetDiscountByID(ctx context.Context, id int64) (GetDiscountByI
 
 const getDiscountWithRelations = `-- name: GetDiscountWithRelations :one
 SELECT
-  d.id, d.title, d.code, d.discount_type, d.status, d.usage_limit, d.usage_count, d.per_customer_limit, d.starts_at, d.ends_at, d.created_at, d.updated_at,
+  d.id, d.title, d.description, d.code, d.discount_type, d.status, d.usage_limit, d.per_customer_limit, d.starts_at, d.ends_at,
   COALESCE(
     (
       SELECT json_agg(dc)
@@ -166,16 +182,14 @@ LIMIT 1
 type GetDiscountWithRelationsRow struct {
 	ID               int64            `json:"id"`
 	Title            string           `json:"title"`
+	Description      pgtype.Text      `json:"description"`
 	Code             pgtype.Text      `json:"code"`
 	DiscountType     string           `json:"discount_type"`
 	Status           string           `json:"status"`
 	UsageLimit       pgtype.Int4      `json:"usage_limit"`
-	UsageCount       pgtype.Int4      `json:"usage_count"`
 	PerCustomerLimit pgtype.Int4      `json:"per_customer_limit"`
 	StartsAt         pgtype.Timestamp `json:"starts_at"`
 	EndsAt           pgtype.Timestamp `json:"ends_at"`
-	CreatedAt        pgtype.Timestamp `json:"created_at"`
-	UpdatedAt        pgtype.Timestamp `json:"updated_at"`
 	Conditions       interface{}      `json:"conditions"`
 	Effects          interface{}      `json:"effects"`
 	Targets          interface{}      `json:"targets"`
@@ -187,16 +201,14 @@ func (q *Queries) GetDiscountWithRelations(ctx context.Context, id int64) (GetDi
 	err := row.Scan(
 		&i.ID,
 		&i.Title,
+		&i.Description,
 		&i.Code,
 		&i.DiscountType,
 		&i.Status,
 		&i.UsageLimit,
-		&i.UsageCount,
 		&i.PerCustomerLimit,
 		&i.StartsAt,
 		&i.EndsAt,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.Conditions,
 		&i.Effects,
 		&i.Targets,
@@ -204,17 +216,84 @@ func (q *Queries) GetDiscountWithRelations(ctx context.Context, id int64) (GetDi
 	return i, err
 }
 
-const incrementDiscountUsage = `-- name: IncrementDiscountUsage :exec
-UPDATE discounts SET usage_count = usage_count + 1 WHERE id = $1
+const getValidDiscounts = `-- name: GetValidDiscounts :many
+SELECT
+    d.id, d.title, d.description, d.code, d.discount_type, d.status, d.usage_limit, d.per_customer_limit, d.starts_at, d.ends_at,
+    COALESCE(
+      (
+        SELECT json_agg(dc)
+        FROM discount_conditions dc
+        WHERE dc.discount_id = d.id
+      ),
+      '[]'::json
+    ) AS conditions,
+    COALESCE(
+      (
+        SELECT json_agg(de)
+        FROM discount_effects de
+        WHERE de.discount_id = d.id
+      ),
+      '[]'::json
+    ) AS effects
+FROM
+    discounts d
+WHERE
+    d.status = 'active'
+    AND d.starts_at <= NOW()
+    AND (d.ends_at IS NULL OR d.ends_at > NOW())
+    AND (d.usage_limit IS NULL OR d.usage_count < d.usage_limit)
 `
 
-func (q *Queries) IncrementDiscountUsage(ctx context.Context, id int64) error {
-	_, err := q.db.Exec(ctx, incrementDiscountUsage, id)
-	return err
+type GetValidDiscountsRow struct {
+	ID               int64            `json:"id"`
+	Title            string           `json:"title"`
+	Description      pgtype.Text      `json:"description"`
+	Code             pgtype.Text      `json:"code"`
+	DiscountType     string           `json:"discount_type"`
+	Status           string           `json:"status"`
+	UsageLimit       pgtype.Int4      `json:"usage_limit"`
+	PerCustomerLimit pgtype.Int4      `json:"per_customer_limit"`
+	StartsAt         pgtype.Timestamp `json:"starts_at"`
+	EndsAt           pgtype.Timestamp `json:"ends_at"`
+	Conditions       interface{}      `json:"conditions"`
+	Effects          interface{}      `json:"effects"`
+}
+
+func (q *Queries) GetValidDiscounts(ctx context.Context) ([]GetValidDiscountsRow, error) {
+	rows, err := q.db.Query(ctx, getValidDiscounts)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetValidDiscountsRow
+	for rows.Next() {
+		var i GetValidDiscountsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.Code,
+			&i.DiscountType,
+			&i.Status,
+			&i.UsageLimit,
+			&i.PerCustomerLimit,
+			&i.StartsAt,
+			&i.EndsAt,
+			&i.Conditions,
+			&i.Effects,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listDiscounts = `-- name: ListDiscounts :many
-SELECT id, title, code, discount_type, status, usage_limit, usage_count, per_customer_limit, starts_at, ends_at, created_at, updated_at
+SELECT id, title, description, code, discount_type, status, usage_limit, per_customer_limit, starts_at, ends_at
 FROM discounts
 ORDER BY created_at DESC
 LIMIT $1
@@ -226,28 +305,39 @@ type ListDiscountsParams struct {
 	Offset int32 `json:"offset"`
 }
 
-func (q *Queries) ListDiscounts(ctx context.Context, arg ListDiscountsParams) ([]Discount, error) {
+type ListDiscountsRow struct {
+	ID               int64            `json:"id"`
+	Title            string           `json:"title"`
+	Description      pgtype.Text      `json:"description"`
+	Code             pgtype.Text      `json:"code"`
+	DiscountType     string           `json:"discount_type"`
+	Status           string           `json:"status"`
+	UsageLimit       pgtype.Int4      `json:"usage_limit"`
+	PerCustomerLimit pgtype.Int4      `json:"per_customer_limit"`
+	StartsAt         pgtype.Timestamp `json:"starts_at"`
+	EndsAt           pgtype.Timestamp `json:"ends_at"`
+}
+
+func (q *Queries) ListDiscounts(ctx context.Context, arg ListDiscountsParams) ([]ListDiscountsRow, error) {
 	rows, err := q.db.Query(ctx, listDiscounts, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Discount
+	var items []ListDiscountsRow
 	for rows.Next() {
-		var i Discount
+		var i ListDiscountsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Title,
+			&i.Description,
 			&i.Code,
 			&i.DiscountType,
 			&i.Status,
 			&i.UsageLimit,
-			&i.UsageCount,
 			&i.PerCustomerLimit,
 			&i.StartsAt,
 			&i.EndsAt,
-			&i.CreatedAt,
-			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -263,12 +353,13 @@ const updateDiscount = `-- name: UpdateDiscount :one
 UPDATE discounts
 SET
   title = $2,
-  status = $3,
-  usage_limit = $4,
-  usage_count = $5,
-  per_customer_limit = $6,
-  starts_at = $7,
-  ends_at = $8,
+  description = $3,
+  status = $4,
+  usage_limit = $5,
+  usage_count = $6,
+  per_customer_limit = $7,
+  starts_at = $8,
+  ends_at = $9,
   updated_at = CURRENT_TIMESTAMP
 WHERE id = $1
 RETURNING id
@@ -277,6 +368,7 @@ RETURNING id
 type UpdateDiscountParams struct {
 	ID               int64            `json:"id"`
 	Title            string           `json:"title"`
+	Description      pgtype.Text      `json:"description"`
 	Status           string           `json:"status"`
 	UsageLimit       pgtype.Int4      `json:"usage_limit"`
 	UsageCount       pgtype.Int4      `json:"usage_count"`
@@ -289,6 +381,7 @@ func (q *Queries) UpdateDiscount(ctx context.Context, arg UpdateDiscountParams) 
 	row := q.db.QueryRow(ctx, updateDiscount,
 		arg.ID,
 		arg.Title,
+		arg.Description,
 		arg.Status,
 		arg.UsageLimit,
 		arg.UsageCount,
@@ -299,4 +392,16 @@ func (q *Queries) UpdateDiscount(ctx context.Context, arg UpdateDiscountParams) 
 	var id int64
 	err := row.Scan(&id)
 	return id, err
+}
+
+const upsertDiscountUsageUsage = `-- name: UpsertDiscountUsageUsage :exec
+INSERT INTO discounts (id, usage_count)
+VALUES ($1, 1)
+ON CONFLICT (id) DO UPDATE
+SET usage_count = discounts.usage_count + 1
+`
+
+func (q *Queries) UpsertDiscountUsageUsage(ctx context.Context, id int64) error {
+	_, err := q.db.Exec(ctx, upsertDiscountUsageUsage, id)
+	return err
 }

@@ -12,6 +12,7 @@ type PaginatedResponse[T any] struct {
 
 type CreateDiscountRequest struct {
 	Title            string    `json:"title"`
+	Description      string    `json:"description"`
 	Code             string    `json:"code"`
 	DiscountType     string    `json:"discount_type" validate:"required,oneof=code automatic"`
 	Status           string    `json:"status" validate:"required,oneof=draft active scheduled expired"`
@@ -40,6 +41,7 @@ type CreateDiscountConditionRequest struct {
 
 type UpdateDiscountRequest struct {
 	Title            string    `json:"title"`
+	Description      string    `json:"description"`
 	Status           string    `json:"status" validate:"required,oneof=draft active scheduled expired"`
 	EndsAt           time.Time `json:"ends_at"`
 	UsageLimit       int32     `json:"usage_limit"`
@@ -65,6 +67,7 @@ type UpdateDiscountConditionRequest struct {
 type OneDiscountResponse struct {
 	ID               int64     `json:"id"`
 	Title            string    `json:"title"`
+	Description      string    `json:"description"`
 	Code             string    `json:"code"`
 	DiscountType     string    `json:"discount_type"`
 	Status           string    `json:"status"`
@@ -76,4 +79,9 @@ type OneDiscountResponse struct {
 
 type BulkDeleteDiscountsRequest struct {
 	IDs []int64 `json:"ids" validate:"required,dive,gt=0"`
+}
+
+type UpsertCustomerUsageRequest struct {
+	DiscountID int64 `json:"discount_id" validate:"required"`
+	CustomerID int64 `json:"customer_id" validate:"required"`
 }

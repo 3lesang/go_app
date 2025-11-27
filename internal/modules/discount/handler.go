@@ -4,6 +4,8 @@ import (
 	"app/internal/db"
 	product_db "app/internal/db/product"
 	"context"
+	"database/sql"
+	"errors"
 	"math"
 	"strconv"
 
@@ -40,12 +42,13 @@ func CreateDiscountHandler(c *fiber.Ctx) error {
 		product_db.CreateDiscountParams{
 			Code:             pgtype.Text{String: req.Code, Valid: len(req.Code) > 0},
 			Title:            req.Title,
+			Description:      pgtype.Text{String: req.Description, Valid: len(req.Description) > 0},
 			DiscountType:     req.DiscountType,
 			Status:           req.Status,
 			UsageLimit:       pgtype.Int4{Int32: req.UsageLimit, Valid: req.UsageLimit > 0},
 			PerCustomerLimit: pgtype.Int4{Int32: req.PerCustomerLimit, Valid: req.PerCustomerLimit > 0},
 			StartsAt:         pgtype.Timestamp{Time: req.StartsAt, Valid: true},
-			EndsAt:           pgtype.Timestamp{Time: req.EndsAt, Valid: true},
+			EndsAt:           pgtype.Timestamp{Time: req.EndsAt, Valid: !req.EndsAt.IsZero()},
 		},
 	)
 	if err != nil {
@@ -193,11 +196,12 @@ func UpdateDiscountHandler(c *fiber.Ctx) error {
 	discount, err := db.ProductQueries.UpdateDiscount(ctx, product_db.UpdateDiscountParams{
 		ID:               id,
 		Title:            req.Title,
+		Description:      pgtype.Text{String: req.Description, Valid: len(req.Description) > 0},
 		Status:           req.Status,
 		UsageLimit:       pgtype.Int4{Int32: req.UsageLimit, Valid: req.UsageLimit > 0},
 		PerCustomerLimit: pgtype.Int4{Int32: req.PerCustomerLimit, Valid: req.PerCustomerLimit > 0},
 		StartsAt:         pgtype.Timestamp{Time: req.StartsAt, Valid: true},
-		EndsAt:           pgtype.Timestamp{Time: req.EndsAt, Valid: true},
+		EndsAt:           pgtype.Timestamp{Time: req.EndsAt, Valid: !req.EndsAt.IsZero()},
 	})
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
@@ -333,7 +337,7 @@ func GetDiscountsHandler(c *fiber.Ctx) error {
 
 	totalPages := int(math.Ceil(float64(total) / float64(pageSize)))
 
-	return c.JSON(PaginatedResponse[product_db.Discount]{
+	return c.JSON(PaginatedResponse[product_db.ListDiscountsRow]{
 		Page:       page,
 		PageSize:   pageSize,
 		TotalItems: int(total),
@@ -401,4 +405,109 @@ func BulkDeleteDiscountsHandler(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"deleted": len(req.IDs)})
+}
+
+// GetValidDiscountsHandler godoc
+// @Summary Get list valid discounts
+// @Description Returns list valid discount
+// @Tags discounts
+// @Produce json
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /discounts/public [get]
+func GetValidDiscountsHandler(c *fiber.Ctx) error {
+	ctx := context.Background()
+	result, err := db.ProductQueries.GetValidDiscounts(ctx)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(result)
+}
+
+// GetCustomerUsageHandler godoc
+// @Summary Get usage count for a discount by customer
+// @Description Returns how many times a customer used the discount
+// @Tags discounts
+// @Accept json
+// @Produce json
+// @Param discount_id path int true "Discount ID"
+// @Param customer_id path int true "Customer ID"
+// @Success 200 {object} map[string]int "used_count"
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /discounts/{discount_id}/customers/{customer_id}/usage [get]
+func GetCustomerUsageHandler(c *fiber.Ctx) error {
+	discountID, err := c.ParamsInt("discount_id")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid discount_id"})
+	}
+
+	customerID, err := c.ParamsInt("customer_id")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid customer_id"})
+	}
+
+	usage, err := db.ProductQueries.GetCustomerUsage(c.Context(), product_db.GetCustomerUsageParams{
+		DiscountID: int64(discountID),
+		CustomerID: int64(customerID),
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return c.JSON(0)
+
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(usage)
+}
+
+// UpsertCustomerUsageHandler godoc
+// @Summary Increment discount usage for customer
+// @Description Increase used_count by 1 for a given discount and customer
+// @Tags discounts
+// @Accept json
+// @Produce json
+// @Param data body UpsertCustomerUsageRequest true "Discount and Customer IDs"
+// @Success 200 {object} map[string]string "message: updated"
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /discounts/usage [post]
+func UpsertCustomerUsageHandler(c *fiber.Ctx) error {
+	var body UpsertCustomerUsageRequest
+
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid request body",
+		})
+	}
+
+	if body.DiscountID == 0 || body.CustomerID == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "discount_id and customer_id are required",
+		})
+	}
+
+	params := product_db.UpsertCustomerUsageParams{
+		DiscountID: body.DiscountID,
+		CustomerID: body.CustomerID,
+	}
+
+	err := db.ProductQueries.UpsertCustomerUsage(c.Context(), params)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	err = db.ProductQueries.UpsertDiscountUsageUsage(c.Context(), body.DiscountID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{"message": "updated"})
 }

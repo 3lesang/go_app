@@ -60,6 +60,7 @@ type Customer struct {
 type Discount struct {
 	ID               int64            `json:"id"`
 	Title            string           `json:"title"`
+	Description      pgtype.Text      `json:"description"`
 	Code             pgtype.Text      `json:"code"`
 	DiscountType     string           `json:"discount_type"`
 	Status           string           `json:"status"`

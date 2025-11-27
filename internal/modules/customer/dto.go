@@ -17,3 +17,8 @@ type CreateCustomerRequest struct {
 type DeleteCustomersRequest struct {
 	IDs []int64 `json:"ids"`
 }
+
+type CustomerLoginRequest struct {
+	Phone    string `json:"phone"`
+	Password string `json:"password"`
+}

@@ -94,6 +94,9 @@ func Init(app *fiber.App) {
 	customerGroup := v1.Group("/customers")
 	customerGroup.Get("/", customer.GetCustomersHandler)
 	customerGroup.Post("/", customer.CreateCustomerHandler)
+	customerGroup.Post("/register", customer.RegisterCustomerHandler)
+	customerGroup.Post("/login", customer.CustomerLoginHandler)
+
 	customerGroup.Delete("/", customer.BulkDeleteCustomersHandler)
 
 	pageGroup := v1.Group("/pages")
@@ -126,11 +129,16 @@ func Init(app *fiber.App) {
 	fileGroup.Delete("/", file.DeleteFilesHandler)
 
 	discountGroup := v1.Group("/discounts")
+	discountGroup.Get("/public", discount.GetValidDiscountsHandler)
+
 	discountGroup.Get("/", discount.GetDiscountsHandler)
 	discountGroup.Get("/:id", discount.GetDiscountHandler)
 	discountGroup.Put("/:id", discount.UpdateDiscountHandler)
 	discountGroup.Post("/", discount.CreateDiscountHandler)
 	discountGroup.Delete("/", discount.BulkDeleteDiscountsHandler)
+
+	discountGroup.Get("/:discount_id/customers/:customer_id/usage", discount.GetCustomerUsageHandler)
+	discountGroup.Post("/usage", discount.UpsertCustomerUsageHandler)
 
 	discountGroup.Post("/:id/targets", discount.CreateDiscountTargetHandler)
 	discountGroup.Post("/:id/effects", discount.CreateDiscountEffectHandler)

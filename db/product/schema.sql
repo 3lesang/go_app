@@ -172,6 +172,7 @@ CREATE TABLE IF NOT EXISTS menus (
 CREATE TABLE discounts (
   id BIGSERIAL PRIMARY KEY,
   title TEXT NOT NULL,
+  description TEXT,
   code TEXT UNIQUE, -- nullable for automatic discounts
   discount_type TEXT NOT NULL, -- 'code' | 'automatic'
   status TEXT NOT NULL, -- 'draft' | 'active' | 'scheduled' | 'expired'

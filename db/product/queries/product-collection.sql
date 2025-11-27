@@ -53,7 +53,7 @@ SELECT
             'name', o.name,
             'values',
               (
-                SELECT COALESCE(json_agg(ov.name), '[]'::json)
+                SELECT COALESCE(json_agg(json_build_object('id', ov.id,'name', ov.name)), '[]'::json)
                 FROM option_values ov
                 WHERE ov.option_id = o.id
               )
@@ -77,6 +77,8 @@ SELECT
             v.origin_price,
             'sale_price',
             v.sale_price,
+            'file',
+            v.file,
             'options',
             (
               SELECT
@@ -142,7 +144,7 @@ SELECT
                       'name', o.name,
                       'values',
                         (
-                          SELECT COALESCE(json_agg(ov.name), '[]'::json)
+                          SELECT COALESCE(json_agg(json_build_object('id', ov.id, 'name', ov.name)), '[]'::json)
                           FROM option_values ov
                           WHERE ov.option_id = o.id
                         )
@@ -167,6 +169,8 @@ SELECT
                       v.origin_price,
                       'sale_price',
                       v.sale_price,
+                      'file',
+                      v.file,
                       'options',
                       (
                         SELECT

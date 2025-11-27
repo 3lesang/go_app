@@ -56,10 +56,36 @@ func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) 
 	return id, err
 }
 
+const getCustomerByPhone = `-- name: GetCustomerByPhone :one
+SELECT id, name, phone, password
+FROM customers
+WHERE phone = $1
+`
+
+type GetCustomerByPhoneRow struct {
+	ID       int64  `json:"id"`
+	Name     string `json:"name"`
+	Phone    string `json:"phone"`
+	Password string `json:"password"`
+}
+
+func (q *Queries) GetCustomerByPhone(ctx context.Context, phone string) (GetCustomerByPhoneRow, error) {
+	row := q.db.QueryRow(ctx, getCustomerByPhone, phone)
+	var i GetCustomerByPhoneRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Phone,
+		&i.Password,
+	)
+	return i, err
+}
+
 const getCustomers = `-- name: GetCustomers :many
 SELECT
   id,
-  name
+  name,
+  phone
 FROM
   customers
 LIMIT
@@ -74,8 +100,9 @@ type GetCustomersParams struct {
 }
 
 type GetCustomersRow struct {
-	ID   int64  `json:"id"`
-	Name string `json:"name"`
+	ID    int64  `json:"id"`
+	Name  string `json:"name"`
+	Phone string `json:"phone"`
 }
 
 func (q *Queries) GetCustomers(ctx context.Context, arg GetCustomersParams) ([]GetCustomersRow, error) {
@@ -87,7 +114,7 @@ func (q *Queries) GetCustomers(ctx context.Context, arg GetCustomersParams) ([]G
 	var items []GetCustomersRow
 	for rows.Next() {
 		var i GetCustomersRow
-		if err := rows.Scan(&i.ID, &i.Name); err != nil {
+		if err := rows.Scan(&i.ID, &i.Name, &i.Phone); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

@@ -126,6 +126,13 @@ definitions:
     - password
     - phone
     type: object
+  customer.CustomerLoginRequest:
+    properties:
+      password:
+        type: string
+      phone:
+        type: string
+    type: object
   customer.DeleteCustomersRequest:
     properties:
       ids:
@@ -182,6 +189,8 @@ definitions:
     properties:
       code:
         type: string
+      description:
+        type: string
       discount_type:
         enum:
         - code
@@ -234,6 +243,8 @@ definitions:
     type: object
   discount.UpdateDiscountRequest:
     properties:
+      description:
+        type: string
       ends_at:
         type: string
       per_customer_limit:
@@ -253,6 +264,16 @@ definitions:
         type: integer
     required:
     - status
+    type: object
+  discount.UpsertCustomerUsageRequest:
+    properties:
+      customer_id:
+        type: integer
+      discount_id:
+        type: integer
+    required:
+    - customer_id
+    - discount_id
     type: object
   file.CreateFileRequest:
     properties:
@@ -1435,6 +1456,82 @@ paths:
       summary: Create a new customer
       tags:
       - customers
+  /customers/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a customer using phone and password.
+      parameters:
+      - description: Custoerm login request
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/customer.CustomerLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Invalid credentials
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Customer login
+      tags:
+      - customers
+  /customers/register:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new customer and returns the created customer
+      parameters:
+      - description: Create data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/customer.CreateCustomerRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new customer
+      tags:
+      - customers
   /discounts:
     delete:
       consumes:
@@ -1537,6 +1634,52 @@ paths:
       security:
       - BearerAuth: []
       summary: Create a new discount
+      tags:
+      - discounts
+  /discounts/{discount_id}/customers/{customer_id}/usage:
+    get:
+      consumes:
+      - application/json
+      description: Returns how many times a customer used the discount
+      parameters:
+      - description: Discount ID
+        in: path
+        name: discount_id
+        required: true
+        type: integer
+      - description: Customer ID
+        in: path
+        name: customer_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: used_count
+          schema:
+            additionalProperties:
+              type: integer
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get usage count for a discount by customer
       tags:
       - discounts
   /discounts/{id}:
@@ -1818,6 +1961,75 @@ paths:
       security:
       - BearerAuth: []
       summary: Create discount target
+      tags:
+      - discounts
+  /discounts/public:
+    get:
+      description: Returns list valid discount
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get list valid discounts
+      tags:
+      - discounts
+  /discounts/usage:
+    post:
+      consumes:
+      - application/json
+      description: Increase used_count by 1 for a given discount and customer
+      parameters:
+      - description: Discount and Customer IDs
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/discount.UpsertCustomerUsageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'message: updated'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Increment discount usage for customer
       tags:
       - discounts
   /files:
