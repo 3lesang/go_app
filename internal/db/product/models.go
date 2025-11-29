@@ -109,6 +109,11 @@ type File struct {
 	CreatedAt pgtype.Timestamp `json:"created_at"`
 }
 
+type Hotspot struct {
+	ID   int64  `json:"id"`
+	File string `json:"file"`
+}
+
 type Menu struct {
 	ID        int64            `json:"id"`
 	Name      string           `json:"name"`
@@ -184,6 +189,14 @@ type ProductFile struct {
 	No        int32       `json:"no"`
 	IsPrimary bool        `json:"is_primary"`
 	ProductID int64       `json:"product_id"`
+}
+
+type ProductHotspot struct {
+	ID        int64   `json:"id"`
+	ProductID int64   `json:"product_id"`
+	HotspotID int64   `json:"hotspot_id"`
+	X         float32 `json:"x"`
+	Y         float32 `json:"y"`
 }
 
 type ProductTag struct {

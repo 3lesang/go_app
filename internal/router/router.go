@@ -7,6 +7,7 @@ import (
 	"app/internal/modules/customer"
 	"app/internal/modules/discount"
 	"app/internal/modules/file"
+	"app/internal/modules/hotspot"
 	"app/internal/modules/menu"
 	"app/internal/modules/order"
 	"app/internal/modules/page"
@@ -145,4 +146,12 @@ func Init(app *fiber.App) {
 	discountGroup.Post("/:id/conditions", discount.CreateDiscountConditionHandler)
 	discountGroup.Put("/:id/effects/:effectID", discount.UpdateDiscountEffectHandler)
 	discountGroup.Put("/:id/conditions/:conditionID", discount.UpdateDiscountConditionHandler)
+
+	hotspotGroup := v1.Group("/hotspots")
+	hotspotGroup.Get("/", hotspot.GetHotspotsHandler)
+	hotspotGroup.Get("/:id", hotspot.GetHotspotHandler)
+	hotspotGroup.Post("/", hotspot.CreateHotspotHandler)
+	hotspotGroup.Put("/:id", hotspot.UpdateHotspotHandler)
+	hotspotGroup.Delete("/", hotspot.DeleteHotspotsHandler)
+
 }

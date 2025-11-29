@@ -80,7 +80,7 @@ func CreateFileHandler(c *fiber.Ctx) error {
 	ctx := context.Background()
 	if err := db.ProductQueries.BulkInsertFiles(ctx, params); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "invalid request body",
+			"error": err.Error(),
 		})
 	}
 	return c.Status(fiber.StatusCreated).JSON(params)

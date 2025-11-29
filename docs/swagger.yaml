@@ -307,6 +307,67 @@ definitions:
         example: 13
         type: integer
     type: object
+  hotspot.CreateHotspotRequest:
+    properties:
+      file:
+        type: string
+      spots:
+        items:
+          $ref: '#/definitions/hotspot.CreateSpot'
+        type: array
+    type: object
+  hotspot.CreateSpot:
+    properties:
+      product_id:
+        type: integer
+      x:
+        type: number
+      "y":
+        type: number
+    type: object
+  hotspot.DeleteHotspotsRequest:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
+    type: object
+  hotspot.PaginatedResponse-any:
+    properties:
+      data:
+        items: {}
+        type: array
+      page:
+        example: 1
+        type: integer
+      page_size:
+        example: 10
+        type: integer
+      total_items:
+        example: 125
+        type: integer
+      total_pages:
+        example: 13
+        type: integer
+    type: object
+  hotspot.UpdateHotspotRequest:
+    properties:
+      spots:
+        items:
+          $ref: '#/definitions/hotspot.UpdateSpot'
+        type: array
+    type: object
+  hotspot.UpdateSpot:
+    properties:
+      id:
+        type: integer
+      product_id:
+        type: integer
+      x:
+        type: number
+      "y":
+        type: number
+    type: object
   menu.CreateMenuRequest:
     properties:
       name:
@@ -2130,6 +2191,185 @@ paths:
       summary: Create a new file
       tags:
       - files
+  /hotspots:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes multiple hotspots by their IDs
+      parameters:
+      - description: List of file IDs
+        in: body
+        name: ids
+        required: true
+        schema:
+          $ref: '#/definitions/hotspot.DeleteHotspotsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete multiple hotspots
+      tags:
+      - hotspots
+    get:
+      description: Returns a list of hotspots
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/hotspot.PaginatedResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Get hotspot list
+      tags:
+      - hotspots
+    post:
+      consumes:
+      - application/json
+      description: Creates a new hotspot and returns the created hotspot
+      parameters:
+      - description: Create data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/hotspot.CreateHotspotRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new hotspot
+      tags:
+      - hotspots
+  /hotspots/{id}:
+    get:
+      description: Returns a hotspot by ID
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get a hotspot
+      tags:
+      - hotspots
+    put:
+      consumes:
+      - application/json
+      description: Updates a hotspot
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/hotspot.UpdateHotspotRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a hotspot
+      tags:
+      - hotspots
   /menus:
     delete:
       consumes:

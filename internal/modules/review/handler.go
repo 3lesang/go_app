@@ -1,24 +1,16 @@
 package review
 
 import (
-	"app/internal/avif"
 	"app/internal/db"
 	product_db "app/internal/db/product"
-	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"math"
-	"os"
-	"path/filepath"
 	"strconv"
-	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/minio/minio-go/v7"
-	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
 // GetReviewsByProductHandler godoc
@@ -127,35 +119,7 @@ func CreateReviewHandler(c *fiber.Ctx) error {
 		})
 	}
 	files := form.File["files"]
-	fileKeys := []string{}
 	ctx := context.Background()
-
-	if len(files) > 0 {
-		endpoint := os.Getenv("S3_ENDPOINT")
-		accessKeyID := os.Getenv("S3_ACCESS_KEY")
-		secretAccessKey := os.Getenv("S3_SECRET_KEY")
-		s3Client, _ := minio.New(endpoint, &minio.Options{
-			Creds:  credentials.NewStaticV4(accessKeyID, secretAccessKey, ""),
-			Secure: true,
-		})
-		for _, file := range files {
-			src, _ := file.Open()
-			defer src.Close()
-			buf := bytes.NewBuffer(nil)
-			io.Copy(buf, src)
-			img, _ := avif.EncodeImageToAVIF(buf.Bytes())
-			original := file.Filename
-			baseName := strings.TrimSuffix(original, filepath.Ext(original))
-			fileName := baseName + ".avif"
-			objectKey := fmt.Sprintf("%s%s", "review/", fileName)
-			fileKeys = append(fileKeys, objectKey)
-			s3Client.PutObject(ctx, "r2-bucket", objectKey, bytes.NewReader(img),
-				int64(len(img)),
-				minio.PutObjectOptions{
-					ContentType: "image/avif",
-				})
-		}
-	}
 
 	params := product_db.CreateReviewParams{
 		ProductID:  pgtype.Int8{Int64: req.ProductID, Valid: true},
@@ -173,10 +137,11 @@ func CreateReviewHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	if len(fileKeys) > 0 {
+	if len(files) > 0 {
 		createReviewFileParams := product_db.BulkInsertReviewFilesParams{}
-		for _, key := range fileKeys {
-			createReviewFileParams.Names = append(createReviewFileParams.Names, key)
+		for _, file := range files {
+			fileKey := fmt.Sprintf("%s%s", "review/", file.Filename)
+			createReviewFileParams.Names = append(createReviewFileParams.Names, fileKey)
 			createReviewFileParams.ReviewIds = append(createReviewFileParams.ReviewIds, id)
 		}
 		db.ProductQueries.BulkInsertReviewFiles(ctx, createReviewFileParams)

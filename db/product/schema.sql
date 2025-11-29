@@ -218,3 +218,18 @@ CREATE TABLE discount_customer_usages (
   used_count INTEGER DEFAULT 0,
   UNIQUE (discount_id, customer_id)
 );
+
+CREATE TABLE hotspots (
+  id BIGSERIAL PRIMARY KEY,
+  file TEXT NOT NULL
+);
+
+CREATE TABLE product_hotspots (
+  id BIGSERIAL PRIMARY KEY,
+  product_id BIGINT NOT NULL,
+  hotspot_id BIGINT NOT NULL,
+  x REAL NOT NULL,
+  y REAL NOT NULL,
+  FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+  FOREIGN KEY (hotspot_id) REFERENCES hotspots(id) ON DELETE CASCADE
+);
