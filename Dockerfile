@@ -16,7 +16,7 @@ COPY . .
 # Build Go binary
 ENV CGO_ENABLED=0
 RUN GOOS=linux GOARCH=amd64 \
-    go build -ldflags="-s -w" -o server cmd/server/main.go
+    go build -ldflags="-s -w" -o server
 
 # 2. Final image
 FROM alpine:3.21
