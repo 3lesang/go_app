@@ -3642,6 +3642,42 @@ paths:
       summary: Get average rating of a product
       tags:
       - reviews
+  /search:
+    get:
+      consumes:
+      - application/json
+      description: Search products by keyword with pagination
+      parameters:
+      - description: Search keyword
+        in: query
+        name: keyword
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Search products
+      tags:
+      - search
   /users:
     delete:
       consumes:

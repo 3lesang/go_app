@@ -14,6 +14,7 @@ import (
 	"app/internal/modules/post"
 	"app/internal/modules/product"
 	"app/internal/modules/review"
+	"app/internal/modules/search"
 	"app/internal/modules/user"
 
 	jwtware "github.com/gofiber/contrib/jwt"
@@ -154,4 +155,5 @@ func Init(app *fiber.App) {
 	hotspotGroup.Put("/:id", hotspot.UpdateHotspotHandler)
 	hotspotGroup.Delete("/", hotspot.DeleteHotspotsHandler)
 
+	v1.Get("/search", search.SearchProductsHandler)
 }

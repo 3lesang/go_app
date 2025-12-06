@@ -52,6 +52,19 @@ func (q *Queries) CountProductsByCategory(ctx context.Context, categoryID pgtype
 	return count, err
 }
 
+const countSearchProducts = `-- name: CountSearchProducts :one
+SELECT COUNT(*) AS total
+FROM products
+WHERE ($1 = '' OR name LIKE '%' || $1 || '%')
+`
+
+func (q *Queries) CountSearchProducts(ctx context.Context, dollar_1 interface{}) (int64, error) {
+	row := q.db.QueryRow(ctx, countSearchProducts, dollar_1)
+	var total int64
+	err := row.Scan(&total)
+	return total, err
+}
+
 const createProduct = `-- name: CreateProduct :one
 INSERT INTO
   products (
@@ -379,6 +392,69 @@ func (q *Queries) GetProductsByCategory(ctx context.Context, arg GetProductsByCa
 	for rows.Next() {
 		var i GetProductsByCategoryRow
 		if err := rows.Scan(&i.ID, &i.Name, &i.Files); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const searchProducts = `-- name: SearchProducts :many
+SELECT
+    p.id,
+    p.name,
+    p.slug,
+    p.origin_price,
+    p.sale_price,
+    (
+        SELECT pf.name
+        FROM product_files pf
+        WHERE pf.product_id = p.id
+          AND pf.is_primary = TRUE
+        ORDER BY pf.no ASC
+        LIMIT 1
+    ) AS file
+FROM products p
+WHERE ($1 = '' OR p.name ILIKE '%' || $1 || '%')
+ORDER BY p.created_at DESC
+LIMIT $2 OFFSET $3
+`
+
+type SearchProductsParams struct {
+	Column1 interface{} `json:"column_1"`
+	Limit   int32       `json:"limit"`
+	Offset  int32       `json:"offset"`
+}
+
+type SearchProductsRow struct {
+	ID          int64       `json:"id"`
+	Name        string      `json:"name"`
+	Slug        string      `json:"slug"`
+	OriginPrice int32       `json:"origin_price"`
+	SalePrice   int32       `json:"sale_price"`
+	File        pgtype.Text `json:"file"`
+}
+
+func (q *Queries) SearchProducts(ctx context.Context, arg SearchProductsParams) ([]SearchProductsRow, error) {
+	rows, err := q.db.Query(ctx, searchProducts, arg.Column1, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SearchProductsRow
+	for rows.Next() {
+		var i SearchProductsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Slug,
+			&i.OriginPrice,
+			&i.SalePrice,
+			&i.File,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

@@ -203,3 +203,28 @@ LIMIT
   $1
 OFFSET
   $2;
+
+-- name: SearchProducts :many
+SELECT
+    p.id,
+    p.name,
+    p.slug,
+    p.origin_price,
+    p.sale_price,
+    (
+        SELECT pf.name
+        FROM product_files pf
+        WHERE pf.product_id = p.id
+          AND pf.is_primary = TRUE
+        ORDER BY pf.no ASC
+        LIMIT 1
+    ) AS file
+FROM products p
+WHERE ($1 = '' OR p.name ILIKE '%' || $1 || '%')
+ORDER BY p.created_at DESC
+LIMIT $2 OFFSET $3;
+
+-- name: CountSearchProducts :one
+SELECT COUNT(*) AS total
+FROM products
+WHERE ($1 = '' OR name LIKE '%' || $1 || '%');
