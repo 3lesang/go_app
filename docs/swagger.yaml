@@ -837,14 +837,13 @@ definitions:
       value_id:
         type: integer
     type: object
-  review.AverageRatingResponse:
+  review.AverageRatingResponse-any:
     properties:
       average_rating:
         example: 4.2
         type: number
       files:
-        items:
-          type: string
+        items: {}
         type: array
       total_files:
         type: integer
@@ -3620,7 +3619,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/review.AverageRatingResponse'
+            $ref: '#/definitions/review.AverageRatingResponse-any'
         "400":
           description: Bad Request
           schema:

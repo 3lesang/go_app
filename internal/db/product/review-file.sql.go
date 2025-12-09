@@ -45,37 +45,3 @@ func (q *Queries) CountReviewFilesByProduct(ctx context.Context, productID pgtyp
 	err := row.Scan(&count)
 	return count, err
 }
-
-const getReviewFilesByProduct = `-- name: GetReviewFilesByProduct :many
-SELECT
-  rf.name
-FROM
-  review_files rf
-  JOIN reviews r ON r.id = rf.review_id
-WHERE
-  r.product_id = $1
-LIMIT
-  8
-OFFSET
-  0
-`
-
-func (q *Queries) GetReviewFilesByProduct(ctx context.Context, productID pgtype.Int8) ([]string, error) {
-	rows, err := q.db.Query(ctx, getReviewFilesByProduct, productID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []string
-	for rows.Next() {
-		var name string
-		if err := rows.Scan(&name); err != nil {
-			return nil, err
-		}
-		items = append(items, name)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}

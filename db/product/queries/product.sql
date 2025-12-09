@@ -187,6 +187,9 @@ WHERE
 SELECT
   p.id,
   p.name,
+  p.origin_price,
+  p.slug,
+  p.sale_price,
   (
     SELECT
       COALESCE(json_agg(pf.name))

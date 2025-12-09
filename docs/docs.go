@@ -4213,7 +4213,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/review.AverageRatingResponse"
+                            "$ref": "#/definitions/review.AverageRatingResponse-any"
                         }
                     },
                     "400": {
@@ -5747,7 +5747,7 @@ const docTemplate = `{
                 }
             }
         },
-        "review.AverageRatingResponse": {
+        "review.AverageRatingResponse-any": {
             "type": "object",
             "properties": {
                 "average_rating": {
@@ -5756,9 +5756,7 @@ const docTemplate = `{
                 },
                 "files": {
                     "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                    "items": {}
                 },
                 "total_files": {
                     "type": "integer"

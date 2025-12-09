@@ -96,6 +96,71 @@ func (q *Queries) GetAverageRatingByProduct(ctx context.Context, productID pgtyp
 	return i, err
 }
 
+const getReviewFilesByProduct = `-- name: GetReviewFilesByProduct :many
+SELECT
+  r.comment,
+  r.rating,
+  (
+    SELECT
+      COALESCE(json_agg(rf.name))
+    FROM
+      review_files rf
+    WHERE
+      rf.review_id = r.id
+  ) AS files,
+  (
+    SELECT
+      COALESCE(
+        json_build_object('id', c.id, 'name', c.name, 'avatar', c.avatar),
+        '{}'::json
+      )
+    FROM
+      customers c
+    WHERE
+      c.id = r.customer_id
+  ) AS customer
+FROM
+  reviews r
+WHERE
+  r.product_id = $1 and r.has_file = true
+LIMIT
+  8
+OFFSET
+  0
+`
+
+type GetReviewFilesByProductRow struct {
+	Comment  pgtype.Text `json:"comment"`
+	Rating   pgtype.Int4 `json:"rating"`
+	Files    interface{} `json:"files"`
+	Customer interface{} `json:"customer"`
+}
+
+func (q *Queries) GetReviewFilesByProduct(ctx context.Context, productID pgtype.Int8) ([]GetReviewFilesByProductRow, error) {
+	rows, err := q.db.Query(ctx, getReviewFilesByProduct, productID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetReviewFilesByProductRow
+	for rows.Next() {
+		var i GetReviewFilesByProductRow
+		if err := rows.Scan(
+			&i.Comment,
+			&i.Rating,
+			&i.Files,
+			&i.Customer,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getReviewsByProductID = `-- name: GetReviewsByProductID :many
 SELECT
   r.id,

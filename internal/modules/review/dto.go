@@ -15,11 +15,11 @@ type CreateReviewRequest struct {
 	CustomerID int64  `json:"customer_id" form:"customer_id"`
 }
 
-type AverageRatingResponse struct {
-	AverageRating float64  `json:"average_rating" example:"4.2"`
-	TotalReviews  int64    `json:"total_reviews" example:"15"`
-	TotalFiles    int64    `json:"total_files"`
-	Files         []string `json:"files"`
+type AverageRatingResponse[T any] struct {
+	AverageRating float64 `json:"average_rating" example:"4.2"`
+	TotalReviews  int64   `json:"total_reviews" example:"15"`
+	TotalFiles    int64   `json:"total_files"`
+	Data          []T     `json:"data"`
 }
 
 type DeleteReviewsRequest struct {

@@ -81,3 +81,35 @@ RETURNING
 DELETE FROM reviews
 WHERE
   id = ANY ($1::bigint[]);
+
+-- name: GetReviewFilesByProduct :many
+SELECT
+  r.comment,
+  r.rating,
+  (
+    SELECT
+      COALESCE(json_agg(rf.name))
+    FROM
+      review_files rf
+    WHERE
+      rf.review_id = r.id
+  ) AS files,
+  (
+    SELECT
+      COALESCE(
+        json_build_object('id', c.id, 'name', c.name, 'avatar', c.avatar),
+        '{}'::json
+      )
+    FROM
+      customers c
+    WHERE
+      c.id = r.customer_id
+  ) AS customer
+FROM
+  reviews r
+WHERE
+  r.product_id = $1 and r.has_file = true
+LIMIT
+  8
+OFFSET
+  0;

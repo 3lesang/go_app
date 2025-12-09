@@ -352,6 +352,9 @@ const getProductsByCategory = `-- name: GetProductsByCategory :many
 SELECT
   p.id,
   p.name,
+  p.origin_price,
+  p.slug,
+  p.sale_price,
   (
     SELECT
       COALESCE(json_agg(pf.name))
@@ -377,9 +380,12 @@ type GetProductsByCategoryParams struct {
 }
 
 type GetProductsByCategoryRow struct {
-	ID    int64       `json:"id"`
-	Name  string      `json:"name"`
-	Files interface{} `json:"files"`
+	ID          int64       `json:"id"`
+	Name        string      `json:"name"`
+	OriginPrice int32       `json:"origin_price"`
+	Slug        string      `json:"slug"`
+	SalePrice   int32       `json:"sale_price"`
+	Files       interface{} `json:"files"`
 }
 
 func (q *Queries) GetProductsByCategory(ctx context.Context, arg GetProductsByCategoryParams) ([]GetProductsByCategoryRow, error) {
@@ -391,7 +397,14 @@ func (q *Queries) GetProductsByCategory(ctx context.Context, arg GetProductsByCa
 	var items []GetProductsByCategoryRow
 	for rows.Next() {
 		var i GetProductsByCategoryRow
-		if err := rows.Scan(&i.ID, &i.Name, &i.Files); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.OriginPrice,
+			&i.Slug,
+			&i.SalePrice,
+			&i.Files,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

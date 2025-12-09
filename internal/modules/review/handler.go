@@ -160,7 +160,7 @@ func CreateReviewHandler(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Param        id   path      int  true  "Product ID"
-// @Success      200  {object}  AverageRatingResponse
+// @Success      200  {object}  AverageRatingResponse[any]
 // @Failure      400  {object}  map[string]string
 // @Failure      404  {object}  map[string]string
 // @Failure      500  {object}  map[string]string
@@ -175,17 +175,17 @@ func GetOverviewByProductHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	ratingInfo, err := db.ProductQueries.GetAverageRatingByProduct(ctx, pgtype.Int8{Int64: id, Valid: true})
 	countFiles, err := db.ProductQueries.CountReviewFilesByProduct(ctx, pgtype.Int8{Int64: id, Valid: true})
-	files, err := db.ProductQueries.GetReviewFilesByProduct(ctx, pgtype.Int8{Int64: id, Valid: true})
+	result, err := db.ProductQueries.GetReviewFilesByProduct(ctx, pgtype.Int8{Int64: id, Valid: true})
 
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	response := AverageRatingResponse{
+	response := AverageRatingResponse[product_db.GetReviewFilesByProductRow]{
 		AverageRating: ratingInfo.AverageRating,
 		TotalReviews:  ratingInfo.TotalReviews,
 		TotalFiles:    countFiles,
-		Files:         files,
+		Data:          result,
 	}
 	return c.JSON(response)
 }
