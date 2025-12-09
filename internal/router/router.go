@@ -151,6 +151,7 @@ func Init(app *fiber.App) {
 	hotspotGroup := v1.Group("/hotspots")
 	hotspotGroup.Get("/", hotspot.GetHotspotsHandler)
 	hotspotGroup.Get("/:id", hotspot.GetHotspotHandler)
+	hotspotGroup.Get("/products/:id", hotspot.GetHotspotByProductHandler)
 	hotspotGroup.Post("/", hotspot.CreateHotspotHandler)
 	hotspotGroup.Put("/:id", hotspot.UpdateHotspotHandler)
 	hotspotGroup.Delete("/", hotspot.DeleteHotspotsHandler)

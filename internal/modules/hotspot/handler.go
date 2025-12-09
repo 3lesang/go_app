@@ -91,6 +91,42 @@ func GetHotspotHandler(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(result)
 }
 
+// GetHotspotByProductHandler godoc
+// @Summary      Get a hotspot by product id
+// @Description  Returns a hotspot by product ID
+// @Tags         hotspots
+// @Security BearerAuth
+// @Produce      json
+// @Param        id   path      int  true  "id"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /hotspots/products/{id} [get]
+func GetHotspotByProductHandler(c *fiber.Ctx) error {
+	param := c.Params("id")
+	id, err := strconv.ParseInt(param, 10, 64)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid param",
+		})
+	}
+	ctx := context.Background()
+	result, err := db.ProductQueries.GetHotspotByProduct(ctx, id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "not found",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(result)
+}
+
 // CreateHotspotHandler godoc
 // @Summary      Create a new hotspot
 // @Description  Creates a new hotspot and returns the created hotspot

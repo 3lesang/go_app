@@ -356,10 +356,9 @@ SET
   description = $3,
   status = $4,
   usage_limit = $5,
-  usage_count = $6,
-  per_customer_limit = $7,
-  starts_at = $8,
-  ends_at = $9,
+  per_customer_limit = $6,
+  starts_at = $7,
+  ends_at = $8,
   updated_at = CURRENT_TIMESTAMP
 WHERE id = $1
 RETURNING id
@@ -371,7 +370,6 @@ type UpdateDiscountParams struct {
 	Description      pgtype.Text      `json:"description"`
 	Status           string           `json:"status"`
 	UsageLimit       pgtype.Int4      `json:"usage_limit"`
-	UsageCount       pgtype.Int4      `json:"usage_count"`
 	PerCustomerLimit pgtype.Int4      `json:"per_customer_limit"`
 	StartsAt         pgtype.Timestamp `json:"starts_at"`
 	EndsAt           pgtype.Timestamp `json:"ends_at"`
@@ -384,7 +382,6 @@ func (q *Queries) UpdateDiscount(ctx context.Context, arg UpdateDiscountParams) 
 		arg.Description,
 		arg.Status,
 		arg.UsageLimit,
-		arg.UsageCount,
 		arg.PerCustomerLimit,
 		arg.StartsAt,
 		arg.EndsAt,

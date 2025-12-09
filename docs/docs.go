@@ -2175,6 +2175,68 @@ const docTemplate = `{
                 }
             }
         },
+        "/hotspots/products/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns a hotspot by product ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "hotspots"
+                ],
+                "summary": "Get a hotspot by product id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/hotspots/{id}": {
             "get": {
                 "security": [
@@ -5754,7 +5816,7 @@ const docTemplate = `{
                     "type": "number",
                     "example": 4.2
                 },
-                "files": {
+                "data": {
                     "type": "array",
                     "items": {}
                 },

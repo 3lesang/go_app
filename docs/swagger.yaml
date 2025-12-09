@@ -842,7 +842,7 @@ definitions:
       average_rating:
         example: 4.2
         type: number
-      files:
+      data:
         items: {}
         type: array
       total_files:
@@ -2367,6 +2367,46 @@ paths:
       security:
       - BearerAuth: []
       summary: Update a hotspot
+      tags:
+      - hotspots
+  /hotspots/products/{id}:
+    get:
+      description: Returns a hotspot by product ID
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get a hotspot by product id
       tags:
       - hotspots
   /menus:
