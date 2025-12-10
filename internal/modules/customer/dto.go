@@ -22,3 +22,10 @@ type CustomerLoginRequest struct {
 	Phone    string `json:"phone"`
 	Password string `json:"password"`
 }
+
+type UpdateMeRequest struct {
+	Name     string `json:"name"`
+	Phone    string `json:"phone"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}

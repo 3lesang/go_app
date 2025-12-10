@@ -94,11 +94,17 @@ func Init(app *fiber.App) {
 	reviewGroup.Get("/products/:id/overview", review.GetOverviewByProductHandler)
 
 	customerGroup := v1.Group("/customers")
-	customerGroup.Get("/", customer.GetCustomersHandler)
-	customerGroup.Post("/", customer.CreateCustomerHandler)
+
 	customerGroup.Post("/register", customer.RegisterCustomerHandler)
 	customerGroup.Post("/login", customer.CustomerLoginHandler)
 
+	customerGroup.Use(jwtware.New(jwtware.Config{
+		SigningKey: jwtware.SigningKey{Key: []byte("jwt")},
+	}))
+	customerGroup.Get("/", customer.GetCustomersHandler)
+	customerGroup.Get("/me", customer.GetMeHandler)
+	customerGroup.Post("/me", customer.UpdateMeHandler)
+	customerGroup.Post("/", customer.CreateCustomerHandler)
 	customerGroup.Delete("/", customer.BulkDeleteCustomersHandler)
 
 	pageGroup := v1.Group("/pages")

@@ -5,12 +5,14 @@ import (
 	product_db "app/internal/db/product"
 	"context"
 	"database/sql"
+	"fmt"
 	"math"
 	"strconv"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -55,6 +57,85 @@ func GetCustomersHandler(c *fiber.Ctx) error {
 		TotalPages: totalPages,
 		Data:       result,
 	})
+}
+
+// GetMeHandler godoc
+// @Summary      Get a customer
+// @Description  Returns a customer
+// @Tags         customers
+// @Security BearerAuth
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /customers/me [get]
+func GetMeHandler(c *fiber.Ctx) error {
+	user := c.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	id := claims["id"].(float64)
+	ctx := context.Background()
+	customer, err := db.ProductQueries.GetCustomer(
+		ctx, int64(id),
+	)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	return c.JSON(customer)
+}
+
+// UpdateMeHandler godoc
+// @Summary      Update me
+// @Description  Update me
+// @Tags         customers
+// @Security BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        payload  body      UpdateMeRequest  true  "Update me request"
+// @Success      200  {integer} int64 "Update successful"
+// @Failure      400  {object}  map[string]string  "Invalid request"
+// @Failure      401  {object}  map[string]string  "Invalid credentials"
+// @Failure      500  {object}  map[string]string  "Internal server error"
+// @Router       /customers/me [post]
+func UpdateMeHandler(c *fiber.Ctx) error {
+	var req UpdateMeRequest
+	if err := c.BodyParser(&req); err != nil {
+		c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid request body",
+		})
+	}
+	user := c.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	id := claims["id"].(float64)
+	ctx := context.Background()
+
+	params := product_db.UpdateCustomerParams{
+		ID:       int64(id),
+		Name:     req.Name,
+		Email:    pgtype.Text{String: req.Email, Valid: len(req.Email) > 0},
+		Column4: "",
+	}
+
+	if len(req.Password) > 0 {
+		passwordHash, err := bcrypt.GenerateFromPassword([]byte(req.Password), 12)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		}
+		params.Column4 = string(passwordHash)
+	}
+
+	idReturn, err := db.ProductQueries.UpdateCustomer(ctx, params)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	return c.JSON(idReturn)
+
 }
 
 // CreateCustomerHandler godoc
@@ -229,14 +310,17 @@ func CustomerLoginHandler(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
-
+	fmt.Println(user.Password)
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": "Invalid credentials",
 		})
 	}
+	claims := jwt.MapClaims{
+		"id": user.ID,
+	}
 
-	t := jwt.New(jwt.SigningMethodHS256)
+	t := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	jwtToken, err := t.SignedString([]byte("jwt"))
 
 	if err != nil {

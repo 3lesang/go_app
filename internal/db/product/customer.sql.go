@@ -7,6 +7,8 @@ package product_db
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const bulkDeleteCustomers = `-- name: BulkDeleteCustomers :exec
@@ -54,6 +56,32 @@ func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) 
 	var id int64
 	err := row.Scan(&id)
 	return id, err
+}
+
+const getCustomer = `-- name: GetCustomer :one
+SELECT id, name, phone, email
+FROM customers
+WHERE id = $1
+LIMIT 1
+`
+
+type GetCustomerRow struct {
+	ID    int64       `json:"id"`
+	Name  string      `json:"name"`
+	Phone string      `json:"phone"`
+	Email pgtype.Text `json:"email"`
+}
+
+func (q *Queries) GetCustomer(ctx context.Context, id int64) (GetCustomerRow, error) {
+	row := q.db.QueryRow(ctx, getCustomer, id)
+	var i GetCustomerRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Phone,
+		&i.Email,
+	)
+	return i, err
 }
 
 const getCustomerByPhone = `-- name: GetCustomerByPhone :one
@@ -123,4 +151,33 @@ func (q *Queries) GetCustomers(ctx context.Context, arg GetCustomersParams) ([]G
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateCustomer = `-- name: UpdateCustomer :one
+UPDATE customers
+SET
+    name     = COALESCE($2, name),
+    email    = COALESCE($3, email),
+    password = CASE WHEN $4 = '' THEN password ELSE $4 END
+WHERE id = $1
+RETURNING id
+`
+
+type UpdateCustomerParams struct {
+	ID      int64       `json:"id"`
+	Name    string      `json:"name"`
+	Email   pgtype.Text `json:"email"`
+	Column4 interface{} `json:"column_4"`
+}
+
+func (q *Queries) UpdateCustomer(ctx context.Context, arg UpdateCustomerParams) (int64, error) {
+	row := q.db.QueryRow(ctx, updateCustomer,
+		arg.ID,
+		arg.Name,
+		arg.Email,
+		arg.Column4,
+	)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
 }

@@ -158,6 +158,17 @@ definitions:
         example: 13
         type: integer
     type: object
+  customer.UpdateMeRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+    type: object
   discount.BulkDeleteDiscountsRequest:
     properties:
       ids:
@@ -1555,6 +1566,81 @@ paths:
               type: string
             type: object
       summary: Customer login
+      tags:
+      - customers
+  /customers/me:
+    get:
+      description: Returns a customer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get a customer
+      tags:
+      - customers
+    post:
+      consumes:
+      - application/json
+      description: Update me
+      parameters:
+      - description: Update me request
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/customer.UpdateMeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Update successful
+          schema:
+            type: integer
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Invalid credentials
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update me
       tags:
       - customers
   /customers/register:
