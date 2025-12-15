@@ -72,12 +72,14 @@ INSERT INTO
     slug,
     origin_price,
     sale_price,
+    stock,
+    sku,
     meta_title,
     meta_description,
     category_id
   )
 VALUES
-  ($1, $2, $3, $4, $5, $6, $7)
+  ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 RETURNING
   id
 `
@@ -87,6 +89,8 @@ type CreateProductParams struct {
 	Slug            string      `json:"slug"`
 	OriginPrice     int32       `json:"origin_price"`
 	SalePrice       int32       `json:"sale_price"`
+	Stock           pgtype.Int4 `json:"stock"`
+	Sku             pgtype.Text `json:"sku"`
 	MetaTitle       string      `json:"meta_title"`
 	MetaDescription string      `json:"meta_description"`
 	CategoryID      pgtype.Int8 `json:"category_id"`
@@ -98,6 +102,8 @@ func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (i
 		arg.Slug,
 		arg.OriginPrice,
 		arg.SalePrice,
+		arg.Stock,
+		arg.Sku,
 		arg.MetaTitle,
 		arg.MetaDescription,
 		arg.CategoryID,
@@ -114,6 +120,8 @@ SELECT
   slug,
   origin_price,
   sale_price,
+  stock,
+  sku,
   meta_title,
   meta_description,
   category_id,
@@ -132,6 +140,8 @@ type GetProductRow struct {
 	Slug            string      `json:"slug"`
 	OriginPrice     int32       `json:"origin_price"`
 	SalePrice       int32       `json:"sale_price"`
+	Stock           pgtype.Int4 `json:"stock"`
+	Sku             pgtype.Text `json:"sku"`
 	MetaTitle       string      `json:"meta_title"`
 	MetaDescription string      `json:"meta_description"`
 	CategoryID      pgtype.Int8 `json:"category_id"`
@@ -147,6 +157,8 @@ func (q *Queries) GetProduct(ctx context.Context, id int64) (GetProductRow, erro
 		&i.Slug,
 		&i.OriginPrice,
 		&i.SalePrice,
+		&i.Stock,
+		&i.Sku,
 		&i.MetaTitle,
 		&i.MetaDescription,
 		&i.CategoryID,
@@ -162,6 +174,8 @@ SELECT
   p.slug,
   p.origin_price,
   p.sale_price,
+  p.stock,
+  p.sku,
   p.meta_title,
   p.meta_description,
   p.category_id,
@@ -255,6 +269,8 @@ type GetProductBySlugRow struct {
 	Slug            string      `json:"slug"`
 	OriginPrice     int32       `json:"origin_price"`
 	SalePrice       int32       `json:"sale_price"`
+	Stock           pgtype.Int4 `json:"stock"`
+	Sku             pgtype.Text `json:"sku"`
 	MetaTitle       string      `json:"meta_title"`
 	MetaDescription string      `json:"meta_description"`
 	CategoryID      pgtype.Int8 `json:"category_id"`
@@ -273,6 +289,8 @@ func (q *Queries) GetProductBySlug(ctx context.Context, slug string) (GetProduct
 		&i.Slug,
 		&i.OriginPrice,
 		&i.SalePrice,
+		&i.Stock,
+		&i.Sku,
 		&i.MetaTitle,
 		&i.MetaDescription,
 		&i.CategoryID,
@@ -485,9 +503,11 @@ SET
   slug = $3,
   origin_price = $4,
   sale_price = $5,
-  meta_title = $6,
-  meta_description = $7,
-  category_id = $8
+  stock = $6,
+  sku = $7,
+  meta_title = $8,
+  meta_description = $9,
+  category_id = $10
 WHERE
   id = $1
 `
@@ -498,6 +518,8 @@ type UpdateProductParams struct {
 	Slug            string      `json:"slug"`
 	OriginPrice     int32       `json:"origin_price"`
 	SalePrice       int32       `json:"sale_price"`
+	Stock           pgtype.Int4 `json:"stock"`
+	Sku             pgtype.Text `json:"sku"`
 	MetaTitle       string      `json:"meta_title"`
 	MetaDescription string      `json:"meta_description"`
 	CategoryID      pgtype.Int8 `json:"category_id"`
@@ -510,6 +532,8 @@ func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) er
 		arg.Slug,
 		arg.OriginPrice,
 		arg.SalePrice,
+		arg.Stock,
+		arg.Sku,
 		arg.MetaTitle,
 		arg.MetaDescription,
 		arg.CategoryID,

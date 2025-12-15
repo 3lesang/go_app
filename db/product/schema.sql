@@ -31,6 +31,8 @@ CREATE TABLE IF NOT EXISTS products (
   slug TEXT UNIQUE NOT NULL,
   origin_price INT NOT NULL DEFAULT 0,
   sale_price INT NOT NULL DEFAULT 0,
+  stock INT DEFAULT 0,
+  sku TEXT,
   meta_title TEXT NOT NULL DEFAULT '',
   meta_description TEXT NOT NULL DEFAULT '',
   meta_keywords TEXT NOT NULL DEFAULT '',

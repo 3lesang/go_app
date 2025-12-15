@@ -37,6 +37,8 @@ SELECT
   slug,
   origin_price,
   sale_price,
+  stock,
+  sku,
   meta_title,
   meta_description,
   category_id,
@@ -55,6 +57,8 @@ SELECT
   p.slug,
   p.origin_price,
   p.sale_price,
+  p.stock,
+  p.sku,
   p.meta_title,
   p.meta_description,
   p.category_id,
@@ -148,12 +152,14 @@ INSERT INTO
     slug,
     origin_price,
     sale_price,
+    stock,
+    sku,
     meta_title,
     meta_description,
     category_id
   )
 VALUES
-  ($1, $2, $3, $4, $5, $6, $7)
+  ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 RETURNING
   id;
 
@@ -164,9 +170,11 @@ SET
   slug = $3,
   origin_price = $4,
   sale_price = $5,
-  meta_title = $6,
-  meta_description = $7,
-  category_id = $8
+  stock = $6,
+  sku = $7,
+  meta_title = $8,
+  meta_description = $9,
+  category_id = $10
 WHERE
   id = $1;
 

@@ -166,6 +166,8 @@ type Product struct {
 	Slug            string           `json:"slug"`
 	OriginPrice     int32            `json:"origin_price"`
 	SalePrice       int32            `json:"sale_price"`
+	Stock           pgtype.Int4      `json:"stock"`
+	Sku             pgtype.Text      `json:"sku"`
 	MetaTitle       string           `json:"meta_title"`
 	MetaDescription string           `json:"meta_description"`
 	MetaKeywords    string           `json:"meta_keywords"`

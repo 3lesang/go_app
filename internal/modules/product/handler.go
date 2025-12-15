@@ -155,6 +155,8 @@ func GetProductHandler(c *fiber.Ctx) error {
 		Slug:            product.Slug,
 		OriginPrice:     product.OriginPrice,
 		SalePrice:       product.SalePrice,
+		Stock:           product.Stock.Int32,
+		SKU:             product.Sku.String,
 		MetaTitle:       product.MetaTitle,
 		MetaDescription: product.MetaDescription,
 		CategoryID:      &product.CategoryID.Int64,
@@ -205,7 +207,7 @@ func GetProductBySlugHandler(c *fiber.Ctx) error {
 // @Router       /products/categories/{id} [get]
 func GetProductByCategoryHandler(c *fiber.Ctx) error {
 	param := c.Params("id")
-	id, err := strconv.ParseInt(param, 10, 64)
+	id, _ := strconv.ParseInt(param, 10, 64)
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	pageSize, _ := strconv.Atoi(c.Query("page_size", "10"))
 	offset := (page - 1) * pageSize
@@ -274,6 +276,8 @@ func CreateProductHandler(c *fiber.Ctx) error {
 		Slug:        req.Slug,
 		OriginPrice: req.OriginPrice,
 		SalePrice:   req.SalePrice,
+		Stock:       pgtype.Int4{Int32: req.Stock, Valid: true},
+		Sku:         pgtype.Text{String: req.SKU, Valid: true},
 		CategoryID: pgtype.Int8{
 			Int64: req.CategoryID,
 			Valid: req.CategoryID > 0,
@@ -324,7 +328,7 @@ func CreateProductHandler(c *fiber.Ctx) error {
 			optionParams.Nos = append(optionParams.Nos, int32(i))
 			optionParams.ProductIds = append(optionParams.ProductIds, productID)
 		}
-		options, err := db.ProductQueries.BulkInsertOptions(ctx, optionParams)
+		options, _ := db.ProductQueries.BulkInsertOptions(ctx, optionParams)
 		optionValueParams := product_db.BulkInsertOptionValuesParams{}
 
 		optionMap := make(map[string]int64)
@@ -450,6 +454,8 @@ func UpdateProductHandler(c *fiber.Ctx) error {
 		Slug:            req.Slug,
 		OriginPrice:     req.OriginPrice,
 		SalePrice:       req.SalePrice,
+		Stock:           pgtype.Int4{Int32: req.Stock, Valid: true},
+		Sku:             pgtype.Text{String: req.SKU, Valid: true},
 		CategoryID:      pgtype.Int8{Int64: req.CategoryID, Valid: req.CategoryID > 0},
 		MetaTitle:       req.MetaTitle,
 		MetaDescription: req.MetaDescription,
