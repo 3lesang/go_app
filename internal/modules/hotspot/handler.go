@@ -112,19 +112,46 @@ func GetHotspotByProductHandler(c *fiber.Ctx) error {
 		})
 	}
 	ctx := context.Background()
-	result, err := db.ProductQueries.GetHotspotByProduct(ctx, id)
+
+	hotspots, err := db.ProductQueries.GetHotspotsByProductId(ctx, id)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"error": "not found",
-			})
-		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
+			"err": err.Error(),
 		})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(result)
+	var results []HotspotWithSpots
+	for _, hotspot := range hotspots {
+		products, err := db.ProductQueries.GetProductsByHotspotId(ctx, hotspot.ID)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"err": err.Error(),
+			})
+		}
+
+		spots := make([]Spot, len(products))
+		for i, p := range products {
+			spots[i] = Spot{
+				Product: Product{
+					ID:          p.ID,
+					Name:        p.Name,
+					Slug:        p.Slug,
+					OriginPrice: p.OriginPrice,
+					SalePrice:   p.SalePrice,
+					File:        p.File.String,
+				},
+				X: p.X,
+				Y: p.Y,
+			}
+		}
+
+		results = append(results, HotspotWithSpots{
+			File:  hotspot.File,
+			Spots: spots,
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(results)
 }
 
 // CreateHotspotHandler godoc

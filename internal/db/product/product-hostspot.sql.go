@@ -7,6 +7,8 @@ package product_db
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const bulkDeleteProductHotspots = `-- name: BulkDeleteProductHotspots :exec
@@ -67,61 +69,25 @@ func (q *Queries) BulkUpdateProductHotspots(ctx context.Context, arg BulkUpdateP
 	return err
 }
 
-const getHotspotByProduct = `-- name: GetHotspotByProduct :many
-SELECT h.id, h.file,
-  COALESCE(
-    json_agg(
-      json_build_object(
-        'id', ph.id,
-        'product_id', ph.product_id,
-        'x', ph.x,
-        'y', ph.y,
-        'product', json_build_object(
-          'id', p.id,
-          'name', p.name,
-          'slug', p.slug,
-          'origin_price', p.origin_price,
-          'sale_price', p.sale_price,
-          'file', f.name
-        )
-      )
-    ) FILTER (WHERE ph.id IS NOT NULL),
-    '[]'
-  ) AS spots
+const getHotspotsByProductId = `-- name: GetHotspotsByProductId :many
+SELECT 
+  h.id,
+  h.file
 FROM hotspots h
-JOIN product_hotspots ph ON ph.hotspot_id = h.id
-LEFT JOIN products p ON p.id = ph.product_id
-LEFT JOIN LATERAL (
-  SELECT
-    name
-  FROM
-    product_files
-  WHERE
-    product_id = p.id
-    AND is_primary = true
-  LIMIT
-    1
-) f ON true
+INNER JOIN product_hotspots ph ON h.id = ph.hotspot_id
 WHERE ph.product_id = $1
-GROUP BY h.id, h.file
 `
 
-type GetHotspotByProductRow struct {
-	ID    int64       `json:"id"`
-	File  string      `json:"file"`
-	Spots interface{} `json:"spots"`
-}
-
-func (q *Queries) GetHotspotByProduct(ctx context.Context, productID int64) ([]GetHotspotByProductRow, error) {
-	rows, err := q.db.Query(ctx, getHotspotByProduct, productID)
+func (q *Queries) GetHotspotsByProductId(ctx context.Context, productID int64) ([]Hotspot, error) {
+	rows, err := q.db.Query(ctx, getHotspotsByProductId, productID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetHotspotByProductRow
+	var items []Hotspot
 	for rows.Next() {
-		var i GetHotspotByProductRow
-		if err := rows.Scan(&i.ID, &i.File, &i.Spots); err != nil {
+		var i Hotspot
+		if err := rows.Scan(&i.ID, &i.File); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -151,6 +117,72 @@ func (q *Queries) GetProductHotspotsByHotspot(ctx context.Context, hotspotID int
 			return nil, err
 		}
 		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getProductsByHotspotId = `-- name: GetProductsByHotspotId :many
+SELECT 
+  p.id,
+  p.name,
+  f.name as file,
+  p.origin_price,
+  p.sale_price,
+  p.slug,
+  ph.x,
+  ph.y
+FROM product_hotspots ph
+INNER JOIN products p ON p.id = ph.product_id
+LEFT JOIN LATERAL (
+  SELECT
+    name
+  FROM
+    product_files
+  WHERE
+    product_id = p.id
+    AND is_primary = true
+  LIMIT
+    1
+) f ON true
+WHERE ph.hotspot_id = $1
+`
+
+type GetProductsByHotspotIdRow struct {
+	ID          int64       `json:"id"`
+	Name        string      `json:"name"`
+	File        pgtype.Text `json:"file"`
+	OriginPrice int32       `json:"origin_price"`
+	SalePrice   int32       `json:"sale_price"`
+	Slug        string      `json:"slug"`
+	X           float32     `json:"x"`
+	Y           float32     `json:"y"`
+}
+
+func (q *Queries) GetProductsByHotspotId(ctx context.Context, hotspotID int64) ([]GetProductsByHotspotIdRow, error) {
+	rows, err := q.db.Query(ctx, getProductsByHotspotId, hotspotID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetProductsByHotspotIdRow
+	for rows.Next() {
+		var i GetProductsByHotspotIdRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.File,
+			&i.OriginPrice,
+			&i.SalePrice,
+			&i.Slug,
+			&i.X,
+			&i.Y,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

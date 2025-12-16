@@ -26,30 +26,26 @@ SELECT id
 FROM product_hotspots
 WHERE hotspot_id = $1;
 
--- name: GetHotspotByProduct :many
-SELECT h.id, h.file,
-  COALESCE(
-    json_agg(
-      json_build_object(
-        'id', ph.id,
-        'product_id', ph.product_id,
-        'x', ph.x,
-        'y', ph.y,
-        'product', json_build_object(
-          'id', p.id,
-          'name', p.name,
-          'slug', p.slug,
-          'origin_price', p.origin_price,
-          'sale_price', p.sale_price,
-          'file', f.name
-        )
-      )
-    ) FILTER (WHERE ph.id IS NOT NULL),
-    '[]'
-  ) AS spots
+-- name: GetHotspotsByProductId :many
+SELECT 
+  h.id,
+  h.file
 FROM hotspots h
-JOIN product_hotspots ph ON ph.hotspot_id = h.id
-LEFT JOIN products p ON p.id = ph.product_id
+INNER JOIN product_hotspots ph ON h.id = ph.hotspot_id
+WHERE ph.product_id = $1;
+
+-- name: GetProductsByHotspotId :many
+SELECT 
+  p.id,
+  p.name,
+  f.name as file,
+  p.origin_price,
+  p.sale_price,
+  p.slug,
+  ph.x,
+  ph.y
+FROM product_hotspots ph
+INNER JOIN products p ON p.id = ph.product_id
 LEFT JOIN LATERAL (
   SELECT
     name
@@ -61,5 +57,4 @@ LEFT JOIN LATERAL (
   LIMIT
     1
 ) f ON true
-WHERE ph.product_id = $1
-GROUP BY h.id, h.file;
+WHERE ph.hotspot_id = $1;

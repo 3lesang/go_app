@@ -1,5 +1,25 @@
 package hotspot
 
+type HotspotWithSpots struct {
+	File  string `json:"file"`
+	Spots []Spot `json:"spots"`
+}
+
+type Spot struct {
+	Product Product `json:"product"`
+	X       float32 `json:"x"`
+	Y       float32 `json:"y"`
+}
+
+type Product struct {
+	ID          int64  `json:"id"`
+	Name        string `json:"name"`
+	Slug        string `json:"slug"`
+	SalePrice   int32  `json:"sale_price"`
+	OriginPrice int32  `json:"ogirin_price"`
+	File        string `json:"file"`
+}
+
 type PaginatedResponse[T any] struct {
 	Page       int   `json:"page" example:"1"`
 	PageSize   int   `json:"page_size" example:"10"`
