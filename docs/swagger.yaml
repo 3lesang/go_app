@@ -614,8 +614,12 @@ definitions:
       sale_price:
         minimum: 0
         type: integer
+      sku:
+        type: string
       slug:
         type: string
+      stock:
+        type: integer
       tags:
         items:
           type: string
@@ -678,8 +682,12 @@ definitions:
         type: integer
       sale_price:
         type: integer
+      sku:
+        type: string
       slug:
         type: string
+      stock:
+        type: integer
       tags: {}
       variants:
         items:
@@ -804,8 +812,12 @@ definitions:
       sale_price:
         minimum: 0
         type: integer
+      sku:
+        type: string
       slug:
         type: string
+      stock:
+        type: integer
       tags:
         items:
           type: string
