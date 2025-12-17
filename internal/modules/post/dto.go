@@ -11,11 +11,13 @@ type PaginatedResponse[T any] struct {
 type CreatePostRequest struct {
 	Title string `json:"title" validate:"required"`
 	Slug  string `json:"slug" validate:"required"`
+	File  string `json:"file"`
 }
 
 type UpdatePostRequest struct {
 	Title string `json:"title" validate:"required"`
 	Slug  string `json:"slug" validate:"required"`
+	File  string `json:"file"`
 }
 
 type DeletePostsRequest struct {

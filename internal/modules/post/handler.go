@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // GetPostsHandler godoc
@@ -47,6 +48,49 @@ func GetPostsHandler(c *fiber.Ctx) error {
 	totalPages := int(math.Ceil(float64(total) / float64(pageSize)))
 
 	return c.JSON(PaginatedResponse[blog_db.GetPostsRow]{
+		Page:       page,
+		PageSize:   pageSize,
+		TotalItems: total,
+		TotalPages: totalPages,
+		Data:       result,
+	})
+}
+
+// GetPublicPostsHandler godoc
+// @Summary      Get post list
+// @Description  Returns a list of posts
+// @Tags         posts
+// @Security BearerAuth
+// @Produce      json
+// @Param        page      query     int     false  "Page number"  default(1)
+// @Param        page_size query     int     false  "Page size"    default(10)
+// @Success      200  {object}  PaginatedResponse[any]
+// @Router       /posts/public [get]
+func GetPublicPostsHandler(c *fiber.Ctx) error {
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	pageSize, _ := strconv.Atoi(c.Query("page_size", "10"))
+	offset := (page - 1) * pageSize
+
+	ctx := context.Background()
+	result, err := db.BlogQueries.GetPublicPosts(ctx, blog_db.GetPublicPostsParams{
+		Limit:  int32(pageSize),
+		Offset: int32(offset),
+	})
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	total, err := db.BlogQueries.CountPublicPosts(ctx)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	totalPages := int(math.Ceil(float64(total) / float64(pageSize)))
+
+	return c.JSON(PaginatedResponse[blog_db.GetPublicPostsRow]{
 		Page:       page,
 		PageSize:   pageSize,
 		TotalItems: total,
@@ -153,6 +197,7 @@ func CreatePostHandler(c *fiber.Ctx) error {
 	postParams := blog_db.CreatePostParams{
 		Title: req.Title,
 		Slug:  req.Slug,
+		File:  pgtype.Text{String: req.File, Valid: true},
 	}
 
 	postID, err := db.BlogQueries.CreatePost(ctx, postParams)
@@ -207,6 +252,7 @@ func UpdatePostHandler(c *fiber.Ctx) error {
 		ID:    id,
 		Title: req.Title,
 		Slug:  req.Slug,
+		File:  pgtype.Text{String: req.File, Valid: true},
 	}
 	if err := db.BlogQueries.UpdatePost(ctx, params); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

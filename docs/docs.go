@@ -3559,6 +3559,47 @@ const docTemplate = `{
                 }
             }
         },
+        "/posts/public": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns a list of posts",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posts"
+                ],
+                "summary": "Get post list",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Page size",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/post.PaginatedResponse-any"
+                        }
+                    }
+                }
+            }
+        },
         "/posts/slug/{id}": {
             "get": {
                 "security": [
@@ -5469,6 +5510,9 @@ const docTemplate = `{
                 "title"
             ],
             "properties": {
+                "file": {
+                    "type": "string"
+                },
                 "slug": {
                     "type": "string"
                 },
@@ -5520,6 +5564,9 @@ const docTemplate = `{
                 "title"
             ],
             "properties": {
+                "file": {
+                    "type": "string"
+                },
                 "slug": {
                     "type": "string"
                 },

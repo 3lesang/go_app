@@ -116,9 +116,14 @@ func Init(app *fiber.App) {
 	pageGroup.Delete("/", page.BulkDeletePagesHandler)
 
 	postGroup := v1.Group("/posts")
+	postGroup.Get("/slug/:id", post.GetPostBySlugHandler)
+	postGroup.Get("/public", post.GetPublicPostsHandler)
+
+	postGroup.Use(jwtware.New(jwtware.Config{
+		SigningKey: jwtware.SigningKey{Key: []byte("jwt")},
+	}))
 	postGroup.Get("/", post.GetPostsHandler)
 	postGroup.Get("/:id", post.GetPostHandler)
-	postGroup.Get("/slug/:id", post.GetPostBySlugHandler)
 	postGroup.Post("/", post.CreatePostHandler)
 	postGroup.Put("/:id", post.UpdatePostHandler)
 	postGroup.Delete("/", post.BulkDeletePostsHandler)

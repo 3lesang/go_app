@@ -7,6 +7,8 @@ package blog_db
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const bulkDeletePosts = `-- name: BulkDeletePosts :exec
@@ -34,66 +36,100 @@ func (q *Queries) CountPosts(ctx context.Context) (int64, error) {
 	return count, err
 }
 
+const countPublicPosts = `-- name: CountPublicPosts :one
+SELECT
+  COUNT(*)
+FROM
+  posts
+WHERE is_active = true
+`
+
+func (q *Queries) CountPublicPosts(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, countPublicPosts)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createPost = `-- name: CreatePost :one
 INSERT INTO
-  posts (title, slug)
+  posts (title, slug, file)
 VALUES
-  ($1, $2)
+  ($1, $2, $3)
 RETURNING id
 `
 
 type CreatePostParams struct {
-	Title string `json:"title"`
-	Slug  string `json:"slug"`
+	Title string      `json:"title"`
+	Slug  string      `json:"slug"`
+	File  pgtype.Text `json:"file"`
 }
 
 func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (int64, error) {
-	row := q.db.QueryRow(ctx, createPost, arg.Title, arg.Slug)
+	row := q.db.QueryRow(ctx, createPost, arg.Title, arg.Slug, arg.File)
 	var id int64
 	err := row.Scan(&id)
 	return id, err
 }
 
 const getPost = `-- name: GetPost :one
-SELECT id, title, slug
+SELECT id, title, slug, file
 FROM posts
 WHERE id = $1
 `
 
 type GetPostRow struct {
-	ID    int64  `json:"id"`
-	Title string `json:"title"`
-	Slug  string `json:"slug"`
+	ID    int64       `json:"id"`
+	Title string      `json:"title"`
+	Slug  string      `json:"slug"`
+	File  pgtype.Text `json:"file"`
 }
 
 func (q *Queries) GetPost(ctx context.Context, id int64) (GetPostRow, error) {
 	row := q.db.QueryRow(ctx, getPost, id)
 	var i GetPostRow
-	err := row.Scan(&i.ID, &i.Title, &i.Slug)
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Slug,
+		&i.File,
+	)
 	return i, err
 }
 
 const getPostBySlug = `-- name: GetPostBySlug :one
-SELECT id, title, slug
+SELECT id, title, slug, file, meta_title, meta_description, created_at
 FROM posts
 WHERE slug = $1
 `
 
 type GetPostBySlugRow struct {
-	ID    int64  `json:"id"`
-	Title string `json:"title"`
-	Slug  string `json:"slug"`
+	ID              int64            `json:"id"`
+	Title           string           `json:"title"`
+	Slug            string           `json:"slug"`
+	File            pgtype.Text      `json:"file"`
+	MetaTitle       string           `json:"meta_title"`
+	MetaDescription string           `json:"meta_description"`
+	CreatedAt       pgtype.Timestamp `json:"created_at"`
 }
 
 func (q *Queries) GetPostBySlug(ctx context.Context, slug string) (GetPostBySlugRow, error) {
 	row := q.db.QueryRow(ctx, getPostBySlug, slug)
 	var i GetPostBySlugRow
-	err := row.Scan(&i.ID, &i.Title, &i.Slug)
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Slug,
+		&i.File,
+		&i.MetaTitle,
+		&i.MetaDescription,
+		&i.CreatedAt,
+	)
 	return i, err
 }
 
 const getPosts = `-- name: GetPosts :many
-SELECT id, title, slug
+SELECT id, title, slug, file
 FROM posts
 LIMIT
   $1
@@ -107,9 +143,10 @@ type GetPostsParams struct {
 }
 
 type GetPostsRow struct {
-	ID    int64  `json:"id"`
-	Title string `json:"title"`
-	Slug  string `json:"slug"`
+	ID    int64       `json:"id"`
+	Title string      `json:"title"`
+	Slug  string      `json:"slug"`
+	File  pgtype.Text `json:"file"`
 }
 
 func (q *Queries) GetPosts(ctx context.Context, arg GetPostsParams) ([]GetPostsRow, error) {
@@ -121,7 +158,65 @@ func (q *Queries) GetPosts(ctx context.Context, arg GetPostsParams) ([]GetPostsR
 	var items []GetPostsRow
 	for rows.Next() {
 		var i GetPostsRow
-		if err := rows.Scan(&i.ID, &i.Title, &i.Slug); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Slug,
+			&i.File,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPublicPosts = `-- name: GetPublicPosts :many
+SELECT id, title, slug, file, meta_title, meta_description, created_at
+FROM posts
+WHERE is_active = true
+LIMIT
+  $1
+OFFSET
+  $2
+`
+
+type GetPublicPostsParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+type GetPublicPostsRow struct {
+	ID              int64            `json:"id"`
+	Title           string           `json:"title"`
+	Slug            string           `json:"slug"`
+	File            pgtype.Text      `json:"file"`
+	MetaTitle       string           `json:"meta_title"`
+	MetaDescription string           `json:"meta_description"`
+	CreatedAt       pgtype.Timestamp `json:"created_at"`
+}
+
+func (q *Queries) GetPublicPosts(ctx context.Context, arg GetPublicPostsParams) ([]GetPublicPostsRow, error) {
+	rows, err := q.db.Query(ctx, getPublicPosts, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPublicPostsRow
+	for rows.Next() {
+		var i GetPublicPostsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Slug,
+			&i.File,
+			&i.MetaTitle,
+			&i.MetaDescription,
+			&i.CreatedAt,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -136,18 +231,25 @@ const updatePost = `-- name: UpdatePost :exec
 UPDATE posts
 SET
   title = $2,
-  slug = $3
+  slug = $3,
+  file = $4
 WHERE
   id = $1
 `
 
 type UpdatePostParams struct {
-	ID    int64  `json:"id"`
-	Title string `json:"title"`
-	Slug  string `json:"slug"`
+	ID    int64       `json:"id"`
+	Title string      `json:"title"`
+	Slug  string      `json:"slug"`
+	File  pgtype.Text `json:"file"`
 }
 
 func (q *Queries) UpdatePost(ctx context.Context, arg UpdatePostParams) error {
-	_, err := q.db.Exec(ctx, updatePost, arg.ID, arg.Title, arg.Slug)
+	_, err := q.db.Exec(ctx, updatePost,
+		arg.ID,
+		arg.Title,
+		arg.Slug,
+		arg.File,
+	)
 	return err
 }
