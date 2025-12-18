@@ -255,6 +255,8 @@ SELECT
             v.id,
             'sku',
             v.sku,
+            'stock',
+            v.stock,
             'origin_price',
             v.origin_price,
             'sale_price',
