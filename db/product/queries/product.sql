@@ -42,7 +42,11 @@ SELECT
   meta_title,
   meta_description,
   category_id,
-  is_active
+  is_active,
+  weight,
+  long,
+  wide,
+  high
 FROM
   products
 WHERE
@@ -59,6 +63,10 @@ SELECT
   p.sale_price,
   p.stock,
   p.sku,
+  p.weight,
+  p.long,
+  p.wide,
+  p.high,
   p.meta_title,
   p.meta_description,
   p.category_id,
@@ -156,10 +164,14 @@ INSERT INTO
     sku,
     meta_title,
     meta_description,
-    category_id
+    category_id,
+    weight,
+    long,
+    wide,
+    high
   )
 VALUES
-  ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+  ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
 RETURNING
   id;
 
@@ -174,7 +186,11 @@ SET
   sku = $7,
   meta_title = $8,
   meta_description = $9,
-  category_id = $10
+  category_id = $10,
+  weight = $11,
+  long = $12,
+  wide = $13,
+  high = $14
 WHERE
   id = $1;
 

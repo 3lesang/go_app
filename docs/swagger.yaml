@@ -602,6 +602,10 @@ definitions:
         items:
           $ref: '#/definitions/product.ProductFiles'
         type: array
+      high:
+        type: integer
+      long:
+        type: integer
       meta_description:
         type: string
       meta_title:
@@ -632,6 +636,10 @@ definitions:
         items:
           $ref: '#/definitions/product.CreateVariant'
         type: array
+      weight:
+        type: integer
+      wide:
+        type: integer
     required:
     - name
     - slug
@@ -668,10 +676,14 @@ definitions:
         type: integer
       collections: {}
       files: {}
+      high:
+        type: integer
       id:
         type: integer
       is_active:
         type: boolean
+      long:
+        type: integer
       meta_description:
         type: string
       meta_title:
@@ -697,6 +709,10 @@ definitions:
         items:
           $ref: '#/definitions/product.OneVariant'
         type: array
+      weight:
+        type: integer
+      wide:
+        type: integer
     type: object
   product.OneVariant:
     properties:
@@ -800,6 +816,10 @@ definitions:
         items:
           $ref: '#/definitions/product.ProductFiles'
         type: array
+      high:
+        type: integer
+      long:
+        type: integer
       meta_description:
         type: string
       meta_title:
@@ -830,6 +850,10 @@ definitions:
         items:
           $ref: '#/definitions/product.UpdateVariants'
         type: array
+      weight:
+        type: integer
+      wide:
+        type: integer
     required:
     - name
     - slug
@@ -884,6 +908,39 @@ definitions:
         items:
           type: integer
         type: array
+    type: object
+  shippingfee.CreateShippingFeeRequest:
+    properties:
+      fee_amount:
+        type: integer
+      free_shipping:
+        type: boolean
+      max_weight:
+        type: integer
+      min_order_value:
+        type: integer
+      min_weight:
+        type: integer
+    type: object
+  shippingfee.DeleteShippingFeesRequest:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
+    type: object
+  shippingfee.UpdateShippingFeeRequest:
+    properties:
+      fee_amount:
+        type: integer
+      free_shipping:
+        type: boolean
+      max_weight:
+        type: integer
+      min_order_value:
+        type: integer
+      min_weight:
+        type: integer
     type: object
   user.CreateUserRequest:
     properties:
@@ -3845,6 +3902,226 @@ paths:
       summary: Search products
       tags:
       - search
+  /shipping-fees:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes multiple shipping fees by their IDs
+      parameters:
+      - description: List of shipping fee IDs
+        in: body
+        name: ids
+        required: true
+        schema:
+          $ref: '#/definitions/shippingfee.DeleteShippingFeesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete multiple shipping fees
+      tags:
+      - shipping-fees
+    get:
+      description: Returns a list of shipping fee
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get shipping fee list
+      tags:
+      - shipping-fees
+    post:
+      consumes:
+      - application/json
+      description: Creates a new shipping fee and returns id
+      parameters:
+      - description: Create shpping fee data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/shippingfee.CreateShippingFeeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new shipping fee
+      tags:
+      - shipping-fees
+  /shipping-fees/{id}:
+    get:
+      description: Returns a shipping fee by ID
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get a shipping fee
+      tags:
+      - shipping-fees
+    put:
+      consumes:
+      - application/json
+      description: Updates a shipping fee
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update shipping fee data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/shippingfee.UpdateShippingFeeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a shipping fee
+      tags:
+      - shipping-fees
+  /shipping-fees/weight/{value}:
+    get:
+      description: Returns a shipping fee by weight
+      parameters:
+      - description: value
+        in: path
+        name: value
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get a shipping fee
+      tags:
+      - shipping-fees
   /users:
     delete:
       consumes:

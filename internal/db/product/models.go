@@ -168,6 +168,10 @@ type Product struct {
 	SalePrice       int32            `json:"sale_price"`
 	Stock           pgtype.Int4      `json:"stock"`
 	Sku             pgtype.Text      `json:"sku"`
+	Weight          pgtype.Int4      `json:"weight"`
+	Long            pgtype.Int4      `json:"long"`
+	Wide            pgtype.Int4      `json:"wide"`
+	High            pgtype.Int4      `json:"high"`
 	MetaTitle       string           `json:"meta_title"`
 	MetaDescription string           `json:"meta_description"`
 	MetaKeywords    string           `json:"meta_keywords"`
@@ -219,6 +223,21 @@ type Review struct {
 type ReviewFile struct {
 	Name     string `json:"name"`
 	ReviewID int64  `json:"review_id"`
+}
+
+type ShippingFee struct {
+	ID             int64            `json:"id"`
+	MinWeight      int32            `json:"min_weight"`
+	MaxWeight      int32            `json:"max_weight"`
+	FeeAmount      int32            `json:"fee_amount"`
+	MinOrderValue  pgtype.Int4      `json:"min_order_value"`
+	FreeShipping   pgtype.Bool      `json:"free_shipping"`
+	ShippingMethod pgtype.Text      `json:"shipping_method"`
+	EffectiveFrom  pgtype.Date      `json:"effective_from"`
+	EffectiveTo    pgtype.Date      `json:"effective_to"`
+	IsActive       pgtype.Bool      `json:"is_active"`
+	CreatedAt      pgtype.Timestamp `json:"created_at"`
+	UpdatedAt      pgtype.Timestamp `json:"updated_at"`
 }
 
 type Variant struct {

@@ -4519,6 +4519,347 @@ const docTemplate = `{
                 }
             }
         },
+        "/shipping-fees": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns a list of shipping fee",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "shipping-fees"
+                ],
+                "summary": "Get shipping fee list",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Page size",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a new shipping fee and returns id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "shipping-fees"
+                ],
+                "summary": "Create a new shipping fee",
+                "parameters": [
+                    {
+                        "description": "Create shpping fee data",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/shippingfee.CreateShippingFeeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes multiple shipping fees by their IDs",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "shipping-fees"
+                ],
+                "summary": "Delete multiple shipping fees",
+                "parameters": [
+                    {
+                        "description": "List of shipping fee IDs",
+                        "name": "ids",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/shippingfee.DeleteShippingFeesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/shipping-fees/weight/{value}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns a shipping fee by weight",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "shipping-fees"
+                ],
+                "summary": "Get a shipping fee",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "value",
+                        "name": "value",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/shipping-fees/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns a shipping fee by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "shipping-fees"
+                ],
+                "summary": "Get a shipping fee",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates a shipping fee",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "shipping-fees"
+                ],
+                "summary": "Update a shipping fee",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update shipping fee data",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/shippingfee.UpdateShippingFeeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/users": {
             "get": {
                 "security": [
@@ -5619,6 +5960,12 @@ const docTemplate = `{
                         "$ref": "#/definitions/product.ProductFiles"
                     }
                 },
+                "high": {
+                    "type": "integer"
+                },
+                "long": {
+                    "type": "integer"
+                },
                 "meta_description": {
                     "type": "string"
                 },
@@ -5662,6 +6009,12 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/product.CreateVariant"
                     }
+                },
+                "weight": {
+                    "type": "integer"
+                },
+                "wide": {
+                    "type": "integer"
                 }
             }
         },
@@ -5713,11 +6066,17 @@ const docTemplate = `{
                 },
                 "collections": {},
                 "files": {},
+                "high": {
+                    "type": "integer"
+                },
                 "id": {
                     "type": "integer"
                 },
                 "is_active": {
                     "type": "boolean"
+                },
+                "long": {
+                    "type": "integer"
                 },
                 "meta_description": {
                     "type": "string"
@@ -5755,6 +6114,12 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/product.OneVariant"
                     }
+                },
+                "weight": {
+                    "type": "integer"
+                },
+                "wide": {
+                    "type": "integer"
                 }
             }
         },
@@ -5916,6 +6281,12 @@ const docTemplate = `{
                         "$ref": "#/definitions/product.ProductFiles"
                     }
                 },
+                "high": {
+                    "type": "integer"
+                },
+                "long": {
+                    "type": "integer"
+                },
                 "meta_description": {
                     "type": "string"
                 },
@@ -5959,6 +6330,12 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/product.UpdateVariants"
                     }
+                },
+                "weight": {
+                    "type": "integer"
+                },
+                "wide": {
+                    "type": "integer"
                 }
             }
         },
@@ -6036,6 +6413,57 @@ const docTemplate = `{
                     "items": {
                         "type": "integer"
                     }
+                }
+            }
+        },
+        "shippingfee.CreateShippingFeeRequest": {
+            "type": "object",
+            "properties": {
+                "fee_amount": {
+                    "type": "integer"
+                },
+                "free_shipping": {
+                    "type": "boolean"
+                },
+                "max_weight": {
+                    "type": "integer"
+                },
+                "min_order_value": {
+                    "type": "integer"
+                },
+                "min_weight": {
+                    "type": "integer"
+                }
+            }
+        },
+        "shippingfee.DeleteShippingFeesRequest": {
+            "type": "object",
+            "properties": {
+                "ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "shippingfee.UpdateShippingFeeRequest": {
+            "type": "object",
+            "properties": {
+                "fee_amount": {
+                    "type": "integer"
+                },
+                "free_shipping": {
+                    "type": "boolean"
+                },
+                "max_weight": {
+                    "type": "integer"
+                },
+                "min_order_value": {
+                    "type": "integer"
+                },
+                "min_weight": {
+                    "type": "integer"
                 }
             }
         },

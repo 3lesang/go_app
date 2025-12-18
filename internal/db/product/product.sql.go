@@ -76,10 +76,14 @@ INSERT INTO
     sku,
     meta_title,
     meta_description,
-    category_id
+    category_id,
+    weight,
+    long,
+    wide,
+    high
   )
 VALUES
-  ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+  ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
 RETURNING
   id
 `
@@ -94,6 +98,10 @@ type CreateProductParams struct {
 	MetaTitle       string      `json:"meta_title"`
 	MetaDescription string      `json:"meta_description"`
 	CategoryID      pgtype.Int8 `json:"category_id"`
+	Weight          pgtype.Int4 `json:"weight"`
+	Long            pgtype.Int4 `json:"long"`
+	Wide            pgtype.Int4 `json:"wide"`
+	High            pgtype.Int4 `json:"high"`
 }
 
 func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (int64, error) {
@@ -107,6 +115,10 @@ func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (i
 		arg.MetaTitle,
 		arg.MetaDescription,
 		arg.CategoryID,
+		arg.Weight,
+		arg.Long,
+		arg.Wide,
+		arg.High,
 	)
 	var id int64
 	err := row.Scan(&id)
@@ -125,7 +137,11 @@ SELECT
   meta_title,
   meta_description,
   category_id,
-  is_active
+  is_active,
+  weight,
+  long,
+  wide,
+  high
 FROM
   products
 WHERE
@@ -146,6 +162,10 @@ type GetProductRow struct {
 	MetaDescription string      `json:"meta_description"`
 	CategoryID      pgtype.Int8 `json:"category_id"`
 	IsActive        bool        `json:"is_active"`
+	Weight          pgtype.Int4 `json:"weight"`
+	Long            pgtype.Int4 `json:"long"`
+	Wide            pgtype.Int4 `json:"wide"`
+	High            pgtype.Int4 `json:"high"`
 }
 
 func (q *Queries) GetProduct(ctx context.Context, id int64) (GetProductRow, error) {
@@ -163,6 +183,10 @@ func (q *Queries) GetProduct(ctx context.Context, id int64) (GetProductRow, erro
 		&i.MetaDescription,
 		&i.CategoryID,
 		&i.IsActive,
+		&i.Weight,
+		&i.Long,
+		&i.Wide,
+		&i.High,
 	)
 	return i, err
 }
@@ -176,6 +200,10 @@ SELECT
   p.sale_price,
   p.stock,
   p.sku,
+  p.weight,
+  p.long,
+  p.wide,
+  p.high,
   p.meta_title,
   p.meta_description,
   p.category_id,
@@ -271,6 +299,10 @@ type GetProductBySlugRow struct {
 	SalePrice       int32       `json:"sale_price"`
 	Stock           pgtype.Int4 `json:"stock"`
 	Sku             pgtype.Text `json:"sku"`
+	Weight          pgtype.Int4 `json:"weight"`
+	Long            pgtype.Int4 `json:"long"`
+	Wide            pgtype.Int4 `json:"wide"`
+	High            pgtype.Int4 `json:"high"`
 	MetaTitle       string      `json:"meta_title"`
 	MetaDescription string      `json:"meta_description"`
 	CategoryID      pgtype.Int8 `json:"category_id"`
@@ -291,6 +323,10 @@ func (q *Queries) GetProductBySlug(ctx context.Context, slug string) (GetProduct
 		&i.SalePrice,
 		&i.Stock,
 		&i.Sku,
+		&i.Weight,
+		&i.Long,
+		&i.Wide,
+		&i.High,
 		&i.MetaTitle,
 		&i.MetaDescription,
 		&i.CategoryID,
@@ -507,7 +543,11 @@ SET
   sku = $7,
   meta_title = $8,
   meta_description = $9,
-  category_id = $10
+  category_id = $10,
+  weight = $11,
+  long = $12,
+  wide = $13,
+  high = $14
 WHERE
   id = $1
 `
@@ -523,6 +563,10 @@ type UpdateProductParams struct {
 	MetaTitle       string      `json:"meta_title"`
 	MetaDescription string      `json:"meta_description"`
 	CategoryID      pgtype.Int8 `json:"category_id"`
+	Weight          pgtype.Int4 `json:"weight"`
+	Long            pgtype.Int4 `json:"long"`
+	Wide            pgtype.Int4 `json:"wide"`
+	High            pgtype.Int4 `json:"high"`
 }
 
 func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) error {
@@ -537,6 +581,10 @@ func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) er
 		arg.MetaTitle,
 		arg.MetaDescription,
 		arg.CategoryID,
+		arg.Weight,
+		arg.Long,
+		arg.Wide,
+		arg.High,
 	)
 	return err
 }

@@ -48,6 +48,10 @@ type OneProductResponse struct {
 	SalePrice       int32        `json:"sale_price"`
 	Stock           int32        `json:"stock"`
 	SKU             string       `json:"sku"`
+	Weight          int32        `json:"weight"`
+	Long            int32        `json:"long"`
+	Wide            int32        `json:"wide"`
+	High            int32        `json:"high"`
 	MetaTitle       string       `json:"meta_title"`
 	MetaDescription string       `json:"meta_description"`
 	IsActive        bool         `json:"is_active"`
@@ -91,6 +95,10 @@ type CreateProductRequest struct {
 	SalePrice       int32           `json:"sale_price" validate:"gte=0"`
 	Stock           int32           `json:"stock"`
 	SKU             string          `json:"sku"`
+	Weight          int32           `json:"weight"`
+	Long            int32           `json:"long"`
+	Wide            int32           `json:"wide"`
+	High            int32           `json:"high"`
 	MetaTitle       string          `json:"meta_title"`
 	MetaDescription string          `json:"meta_description"`
 	CategoryID      int64           `json:"category_id"`
@@ -129,6 +137,10 @@ type UpdateProductRequest struct {
 	SalePrice       int32            `json:"sale_price" validate:"gte=0"`
 	Stock           int32            `json:"stock"`
 	SKU             string           `json:"sku"`
+	Weight          int32            `json:"weight"`
+	Long            int32            `json:"long"`
+	Wide            int32            `json:"wide"`
+	High            int32            `json:"high"`
 	MetaTitle       string           `json:"meta_title"`
 	MetaDescription string           `json:"meta_description"`
 	CategoryID      int64            `json:"category_id"`

@@ -15,6 +15,7 @@ import (
 	"app/internal/modules/product"
 	"app/internal/modules/review"
 	"app/internal/modules/search"
+	shippingfee "app/internal/modules/shipping-fee"
 	"app/internal/modules/user"
 
 	jwtware "github.com/gofiber/contrib/jwt"
@@ -167,5 +168,18 @@ func Init(app *fiber.App) {
 	hotspotGroup.Put("/:id", hotspot.UpdateHotspotHandler)
 	hotspotGroup.Delete("/", hotspot.DeleteHotspotsHandler)
 
+	shippingFeeGroup := v1.Group("/shipping-fees")
+	shippingFeeGroup.Get("/weight/:value", shippingfee.GetShippingFeeByWeightHandler)
+
+	shippingFeeGroup.Use(jwtware.New(jwtware.Config{
+		SigningKey: jwtware.SigningKey{Key: []byte("jwt")},
+	}))
+	shippingFeeGroup.Get("/", shippingfee.GetShippingFeesHandler)
+	shippingFeeGroup.Get("/:id", shippingfee.GetShippingFeeHandler)
+	shippingFeeGroup.Post("/", shippingfee.CreateShippingFeeHandler)
+	shippingFeeGroup.Put("/:id", shippingfee.UpdateShippingFeeHandler)
+	shippingFeeGroup.Delete("/", shippingfee.DeleteShippingFeesHandler)
+
 	v1.Get("/search", search.SearchProductsHandler)
+
 }

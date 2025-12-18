@@ -1,8 +1,10 @@
 -- +goose Up
 -- +goose StatementBegin
 ALTER TABLE products
-ADD COLUMN stock INT DEFAULT 0,
-ADD COLUMN sku TEXT;
+ADD COLUMN weight INT DEFAULT 0,
+ADD COLUMN long INT DEFAULT 0,
+ADD COLUMN wide INT DEFAULT 0,
+ADD COLUMN high INT DEFAULT 0;
 -- +goose StatementEnd
 
 -- +goose Down
