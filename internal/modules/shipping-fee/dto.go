@@ -9,28 +9,31 @@ type PaginatedResponse[T any] struct {
 }
 
 type ShippingFeeResponse struct {
-	ID            int64 `json:"id"`
-	MinWeight     int32 `json:"min_weight"`
-	MaxWeight     int32 `json:"max_weight"`
-	FeeAmount     int32 `json:"fee_amount"`
-	MinOrderValue int32 `json:"min_order_value"`
-	FreeShipping  bool  `json:"free_shipping"`
+	ID            int64  `json:"id"`
+	Name          string `json:"name"`
+	MinWeight     int32  `json:"min_weight"`
+	MaxWeight     int32  `json:"max_weight"`
+	FeeAmount     int32  `json:"fee_amount"`
+	MinOrderValue int32  `json:"min_order_value"`
+	FreeShipping  bool   `json:"free_shipping"`
 }
 
 type CreateShippingFeeRequest struct {
-	MinWeight     int32 `json:"min_weight"`
-	MaxWeight     int32 `json:"max_weight"`
-	FeeAmount     int32 `json:"fee_amount"`
-	MinOrderValue int32 `json:"min_order_value"`
-	FreeShipping  bool  `json:"free_shipping"`
+	Name          string `json:"name"`
+	MinWeight     int32  `json:"min_weight"`
+	MaxWeight     int32  `json:"max_weight"`
+	FeeAmount     int32  `json:"fee_amount"`
+	MinOrderValue int32  `json:"min_order_value"`
+	FreeShipping  bool   `json:"free_shipping"`
 }
 
 type UpdateShippingFeeRequest struct {
-	MinWeight     int32 `json:"min_weight"`
-	MaxWeight     int32 `json:"max_weight"`
-	FeeAmount     int32 `json:"fee_amount"`
-	MinOrderValue int32 `json:"min_order_value"`
-	FreeShipping  bool  `json:"free_shipping"`
+	Name          string `json:"name"`
+	MinWeight     int32  `json:"min_weight"`
+	MaxWeight     int32  `json:"max_weight"`
+	FeeAmount     int32  `json:"fee_amount"`
+	MinOrderValue int32  `json:"min_order_value"`
+	FreeShipping  bool   `json:"free_shipping"`
 }
 
 type DeleteShippingFeesRequest struct {

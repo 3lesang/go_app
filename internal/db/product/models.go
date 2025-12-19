@@ -227,6 +227,7 @@ type ReviewFile struct {
 
 type ShippingFee struct {
 	ID             int64            `json:"id"`
+	Name           pgtype.Text      `json:"name"`
 	MinWeight      int32            `json:"min_weight"`
 	MaxWeight      int32            `json:"max_weight"`
 	FeeAmount      int32            `json:"fee_amount"`

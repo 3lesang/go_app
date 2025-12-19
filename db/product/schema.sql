@@ -242,6 +242,7 @@ CREATE TABLE product_hotspots (
 
 CREATE TABLE shipping_fees (
   id BIGSERIAL PRIMARY KEY,
+  name TEXT,
   min_weight INTEGER NOT NULL DEFAULT 0,
   max_weight INTEGER NOT NULL DEFAULT 0,
   fee_amount INTEGER NOT NULL DEFAULT 0,

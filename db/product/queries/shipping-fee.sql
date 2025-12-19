@@ -7,6 +7,7 @@ FROM
 -- name: GetShippingFees :many
 SELECT
   id,
+  name,
   min_weight,
   max_weight,
   fee_amount,
@@ -15,7 +16,7 @@ SELECT
 FROM
   shipping_fees
 ORDER BY
-  id
+  min_weight ASC
 LIMIT
   $1
 OFFSET
@@ -24,6 +25,7 @@ OFFSET
 -- name: GetShippingFee :one
 SELECT
   id,
+  name,
   min_weight,
   max_weight,
   fee_amount,
@@ -39,6 +41,7 @@ LIMIT
 -- name: GetShippingFeeByWeight :one
 SELECT
   id,
+  name,
   min_weight,
   max_weight,
   fee_amount,
@@ -56,6 +59,7 @@ LIMIT 1;
 -- name: CreateShippingFee :one
 INSERT INTO
   shipping_fees (
+  name,
   min_weight,
   max_weight,
   fee_amount,
@@ -63,7 +67,7 @@ INSERT INTO
   free_shipping
   )
 VALUES
-  ($1, $2, $3, $4, $5)
+  ($1, $2, $3, $4, $5, $6)
 RETURNING
   id;
 
@@ -74,7 +78,8 @@ SET
   max_weight = $3,
   fee_amount = $4,
   min_order_value = $5,
-  free_shipping = $6
+  free_shipping = $6,
+  name = $7
 WHERE
   id = $1;
 

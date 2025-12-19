@@ -39,6 +39,7 @@ func (q *Queries) CountShippingFees(ctx context.Context) (int64, error) {
 const createShippingFee = `-- name: CreateShippingFee :one
 INSERT INTO
   shipping_fees (
+  name,
   min_weight,
   max_weight,
   fee_amount,
@@ -46,12 +47,13 @@ INSERT INTO
   free_shipping
   )
 VALUES
-  ($1, $2, $3, $4, $5)
+  ($1, $2, $3, $4, $5, $6)
 RETURNING
   id
 `
 
 type CreateShippingFeeParams struct {
+	Name          pgtype.Text `json:"name"`
 	MinWeight     int32       `json:"min_weight"`
 	MaxWeight     int32       `json:"max_weight"`
 	FeeAmount     int32       `json:"fee_amount"`
@@ -61,6 +63,7 @@ type CreateShippingFeeParams struct {
 
 func (q *Queries) CreateShippingFee(ctx context.Context, arg CreateShippingFeeParams) (int64, error) {
 	row := q.db.QueryRow(ctx, createShippingFee,
+		arg.Name,
 		arg.MinWeight,
 		arg.MaxWeight,
 		arg.FeeAmount,
@@ -75,6 +78,7 @@ func (q *Queries) CreateShippingFee(ctx context.Context, arg CreateShippingFeePa
 const getShippingFee = `-- name: GetShippingFee :one
 SELECT
   id,
+  name,
   min_weight,
   max_weight,
   fee_amount,
@@ -90,6 +94,7 @@ LIMIT
 
 type GetShippingFeeRow struct {
 	ID            int64       `json:"id"`
+	Name          pgtype.Text `json:"name"`
 	MinWeight     int32       `json:"min_weight"`
 	MaxWeight     int32       `json:"max_weight"`
 	FeeAmount     int32       `json:"fee_amount"`
@@ -102,6 +107,7 @@ func (q *Queries) GetShippingFee(ctx context.Context, id int64) (GetShippingFeeR
 	var i GetShippingFeeRow
 	err := row.Scan(
 		&i.ID,
+		&i.Name,
 		&i.MinWeight,
 		&i.MaxWeight,
 		&i.FeeAmount,
@@ -114,6 +120,7 @@ func (q *Queries) GetShippingFee(ctx context.Context, id int64) (GetShippingFeeR
 const getShippingFeeByWeight = `-- name: GetShippingFeeByWeight :one
 SELECT
   id,
+  name,
   min_weight,
   max_weight,
   fee_amount,
@@ -131,6 +138,7 @@ LIMIT 1
 
 type GetShippingFeeByWeightRow struct {
 	ID            int64       `json:"id"`
+	Name          pgtype.Text `json:"name"`
 	MinWeight     int32       `json:"min_weight"`
 	MaxWeight     int32       `json:"max_weight"`
 	FeeAmount     int32       `json:"fee_amount"`
@@ -143,6 +151,7 @@ func (q *Queries) GetShippingFeeByWeight(ctx context.Context, minWeight int32) (
 	var i GetShippingFeeByWeightRow
 	err := row.Scan(
 		&i.ID,
+		&i.Name,
 		&i.MinWeight,
 		&i.MaxWeight,
 		&i.FeeAmount,
@@ -155,6 +164,7 @@ func (q *Queries) GetShippingFeeByWeight(ctx context.Context, minWeight int32) (
 const getShippingFees = `-- name: GetShippingFees :many
 SELECT
   id,
+  name,
   min_weight,
   max_weight,
   fee_amount,
@@ -163,7 +173,7 @@ SELECT
 FROM
   shipping_fees
 ORDER BY
-  id
+  min_weight ASC
 LIMIT
   $1
 OFFSET
@@ -177,6 +187,7 @@ type GetShippingFeesParams struct {
 
 type GetShippingFeesRow struct {
 	ID            int64       `json:"id"`
+	Name          pgtype.Text `json:"name"`
 	MinWeight     int32       `json:"min_weight"`
 	MaxWeight     int32       `json:"max_weight"`
 	FeeAmount     int32       `json:"fee_amount"`
@@ -195,6 +206,7 @@ func (q *Queries) GetShippingFees(ctx context.Context, arg GetShippingFeesParams
 		var i GetShippingFeesRow
 		if err := rows.Scan(
 			&i.ID,
+			&i.Name,
 			&i.MinWeight,
 			&i.MaxWeight,
 			&i.FeeAmount,
@@ -218,7 +230,8 @@ SET
   max_weight = $3,
   fee_amount = $4,
   min_order_value = $5,
-  free_shipping = $6
+  free_shipping = $6,
+  name = $7
 WHERE
   id = $1
 `
@@ -230,6 +243,7 @@ type UpdateShippingFeeParams struct {
 	FeeAmount     int32       `json:"fee_amount"`
 	MinOrderValue pgtype.Int4 `json:"min_order_value"`
 	FreeShipping  pgtype.Bool `json:"free_shipping"`
+	Name          pgtype.Text `json:"name"`
 }
 
 func (q *Queries) UpdateShippingFee(ctx context.Context, arg UpdateShippingFeeParams) error {
@@ -240,6 +254,7 @@ func (q *Queries) UpdateShippingFee(ctx context.Context, arg UpdateShippingFeePa
 		arg.FeeAmount,
 		arg.MinOrderValue,
 		arg.FreeShipping,
+		arg.Name,
 	)
 	return err
 }

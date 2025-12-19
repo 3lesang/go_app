@@ -91,6 +91,7 @@ func GetShippingFeeHandler(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(ShippingFeeResponse{
 		ID:            result.ID,
+		Name:          result.Name.String,
 		MinWeight:     result.MinWeight,
 		MaxWeight:     result.MaxWeight,
 		FeeAmount:     result.FeeAmount,
@@ -165,6 +166,10 @@ func CreateShippingFeeHandler(c *fiber.Ctx) error {
 
 	ctx := context.Background()
 	params := product_db.CreateShippingFeeParams{
+		Name: pgtype.Text{
+			String: req.Name,
+			Valid:  true,
+		},
 		MinWeight:     req.MinWeight,
 		MaxWeight:     req.MaxWeight,
 		FeeAmount:     req.FeeAmount,
@@ -219,6 +224,7 @@ func UpdateShippingFeeHandler(c *fiber.Ctx) error {
 	ctx := context.Background()
 	params := product_db.UpdateShippingFeeParams{
 		ID:            id,
+		Name:          pgtype.Text{String: req.Name, Valid: true},
 		MinWeight:     req.MinWeight,
 		MaxWeight:     req.MaxWeight,
 		FeeAmount:     req.FeeAmount,

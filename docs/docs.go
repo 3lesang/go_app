@@ -6433,6 +6433,9 @@ const docTemplate = `{
                 },
                 "min_weight": {
                     "type": "integer"
+                },
+                "name": {
+                    "type": "string"
                 }
             }
         },
@@ -6464,6 +6467,9 @@ const docTemplate = `{
                 },
                 "min_weight": {
                     "type": "integer"
+                },
+                "name": {
+                    "type": "string"
                 }
             }
         },

@@ -6430,6 +6430,9 @@
                 },
                 "min_weight": {
                     "type": "integer"
+                },
+                "name": {
+                    "type": "string"
                 }
             }
         },
@@ -6461,6 +6464,9 @@
                 },
                 "min_weight": {
                     "type": "integer"
+                },
+                "name": {
+                    "type": "string"
                 }
             }
         },
