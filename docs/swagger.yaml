@@ -169,6 +169,13 @@ definitions:
       phone:
         type: string
     type: object
+  customer.VerifyPhoneRequest:
+    properties:
+      phone:
+        type: string
+      zns_otp:
+        type: string
+    type: object
   discount.BulkDeleteDiscountsRequest:
     properties:
       ids:
@@ -1753,6 +1760,47 @@ paths:
               type: string
             type: object
       summary: Create a new customer
+      tags:
+      - customers
+  /customers/verify-phone:
+    post:
+      consumes:
+      - application/json
+      description: Verify phone
+      parameters:
+      - description: Verify phone request
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/customer.VerifyPhoneRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Invalid credentials
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Customer verify phone
       tags:
       - customers
   /discounts:

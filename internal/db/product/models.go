@@ -48,13 +48,15 @@ type Collection struct {
 }
 
 type Customer struct {
-	ID        int64            `json:"id"`
-	Name      string           `json:"name"`
-	Phone     string           `json:"phone"`
-	Avatar    pgtype.Text      `json:"avatar"`
-	Email     pgtype.Text      `json:"email"`
-	Password  string           `json:"password"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
+	ID            int64            `json:"id"`
+	Name          string           `json:"name"`
+	Phone         string           `json:"phone"`
+	PhoneVerified pgtype.Bool      `json:"phone_verified"`
+	ZnsOtp        pgtype.Text      `json:"zns_otp"`
+	Avatar        pgtype.Text      `json:"avatar"`
+	Email         pgtype.Text      `json:"email"`
+	Password      string           `json:"password"`
+	CreatedAt     pgtype.Timestamp `json:"created_at"`
 }
 
 type Discount struct {

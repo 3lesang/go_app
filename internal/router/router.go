@@ -98,6 +98,7 @@ func Init(app *fiber.App) {
 
 	customerGroup.Post("/register", customer.RegisterCustomerHandler)
 	customerGroup.Post("/login", customer.CustomerLoginHandler)
+	customerGroup.Post("/verify-phone", customer.VerifyPhoneHandler)
 
 	customerGroup.Use(jwtware.New(jwtware.Config{
 		SigningKey: jwtware.SigningKey{Key: []byte("jwt")},

@@ -38,21 +38,27 @@ func (q *Queries) CountCustomers(ctx context.Context) (int64, error) {
 
 const createCustomer = `-- name: CreateCustomer :one
 INSERT INTO
-  customers (name, phone, password)
+  customers (name, phone, password, zns_otp)
 VALUES
-  ($1, $2, $3)
+  ($1, $2, $3, $4)
 RETURNING
   id
 `
 
 type CreateCustomerParams struct {
-	Name     string `json:"name"`
-	Phone    string `json:"phone"`
-	Password string `json:"password"`
+	Name     string      `json:"name"`
+	Phone    string      `json:"phone"`
+	Password string      `json:"password"`
+	ZnsOtp   pgtype.Text `json:"zns_otp"`
 }
 
 func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) (int64, error) {
-	row := q.db.QueryRow(ctx, createCustomer, arg.Name, arg.Phone, arg.Password)
+	row := q.db.QueryRow(ctx, createCustomer,
+		arg.Name,
+		arg.Phone,
+		arg.Password,
+		arg.ZnsOtp,
+	)
 	var id int64
 	err := row.Scan(&id)
 	return id, err
@@ -85,16 +91,18 @@ func (q *Queries) GetCustomer(ctx context.Context, id int64) (GetCustomerRow, er
 }
 
 const getCustomerByPhone = `-- name: GetCustomerByPhone :one
-SELECT id, name, phone, password
+SELECT id, name, phone, password, phone_verified
 FROM customers
 WHERE phone = $1
+LIMIT 1
 `
 
 type GetCustomerByPhoneRow struct {
-	ID       int64  `json:"id"`
-	Name     string `json:"name"`
-	Phone    string `json:"phone"`
-	Password string `json:"password"`
+	ID            int64       `json:"id"`
+	Name          string      `json:"name"`
+	Phone         string      `json:"phone"`
+	Password      string      `json:"password"`
+	PhoneVerified pgtype.Bool `json:"phone_verified"`
 }
 
 func (q *Queries) GetCustomerByPhone(ctx context.Context, phone string) (GetCustomerByPhoneRow, error) {
@@ -105,6 +113,7 @@ func (q *Queries) GetCustomerByPhone(ctx context.Context, phone string) (GetCust
 		&i.Name,
 		&i.Phone,
 		&i.Password,
+		&i.PhoneVerified,
 	)
 	return i, err
 }
@@ -158,16 +167,18 @@ UPDATE customers
 SET
     name     = COALESCE($2, name),
     email    = COALESCE($3, email),
-    password = CASE WHEN $4 = '' THEN password ELSE $4 END
+    password = CASE WHEN $4 = '' THEN password ELSE $4 END,
+    phone_verified = $5
 WHERE id = $1
 RETURNING id
 `
 
 type UpdateCustomerParams struct {
-	ID      int64       `json:"id"`
-	Name    string      `json:"name"`
-	Email   pgtype.Text `json:"email"`
-	Column4 interface{} `json:"column_4"`
+	ID            int64       `json:"id"`
+	Name          string      `json:"name"`
+	Email         pgtype.Text `json:"email"`
+	Column4       interface{} `json:"column_4"`
+	PhoneVerified pgtype.Bool `json:"phone_verified"`
 }
 
 func (q *Queries) UpdateCustomer(ctx context.Context, arg UpdateCustomerParams) (int64, error) {
@@ -176,8 +187,26 @@ func (q *Queries) UpdateCustomer(ctx context.Context, arg UpdateCustomerParams) 
 		arg.Name,
 		arg.Email,
 		arg.Column4,
+		arg.PhoneVerified,
 	)
 	var id int64
 	err := row.Scan(&id)
 	return id, err
+}
+
+const verifyPhone = `-- name: VerifyPhone :exec
+UPDATE customers
+SET phone_verified = true,
+    zns_otp = NULL
+WHERE phone = $1 AND zns_otp = $2
+`
+
+type VerifyPhoneParams struct {
+	Phone  string      `json:"phone"`
+	ZnsOtp pgtype.Text `json:"zns_otp"`
+}
+
+func (q *Queries) VerifyPhone(ctx context.Context, arg VerifyPhoneParams) error {
+	_, err := q.db.Exec(ctx, verifyPhone, arg.Phone, arg.ZnsOtp)
+	return err
 }

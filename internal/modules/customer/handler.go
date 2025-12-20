@@ -3,10 +3,14 @@ package customer
 import (
 	"app/internal/db"
 	product_db "app/internal/db/product"
+	"bytes"
 	"context"
+	"crypto/rand"
 	"database/sql"
-	"fmt"
+	"encoding/json"
 	"math"
+	"math/big"
+	"net/http"
 	"strconv"
 
 	"github.com/go-playground/validator/v10"
@@ -112,9 +116,9 @@ func UpdateMeHandler(c *fiber.Ctx) error {
 	ctx := context.Background()
 
 	params := product_db.UpdateCustomerParams{
-		ID:       int64(id),
-		Name:     req.Name,
-		Email:    pgtype.Text{String: req.Email, Valid: len(req.Email) > 0},
+		ID:      int64(id),
+		Name:    req.Name,
+		Email:   pgtype.Text{String: req.Email, Valid: len(req.Email) > 0},
 		Column4: "",
 	}
 
@@ -225,6 +229,41 @@ func BulkDeleteCustomersHandler(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusOK)
 }
 
+func GenerateOTP(length int) (string, error) {
+	otp := ""
+	for range length {
+		n, err := rand.Int(rand.Reader, big.NewInt(10))
+		if err != nil {
+			return "", err
+		}
+		otp += n.String()
+	}
+	return otp, nil
+}
+
+func SendZnsOtp(otp string) error {
+	data := map[string]interface{}{
+		"otp": otp,
+	}
+	jsonData, _ := json.Marshal(data)
+	req, err := http.NewRequest(
+		"POST",
+		"https://api.example.com/users",
+		bytes.NewBuffer(jsonData),
+	)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err = client.Do(req)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // RegisterCustomerHandler godoc
 // @Summary      Create a new customer
 // @Description  Creates a new customer and returns the created customer
@@ -260,10 +299,17 @@ func RegisterCustomerHandler(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
+
+	znsOtp, err := GenerateOTP(6)
+
 	customerParams := product_db.CreateCustomerParams{
 		Name:     req.Name,
 		Phone:    req.Phone,
 		Password: string(passwordHash),
+		ZnsOtp: pgtype.Text{
+			String: znsOtp,
+			Valid:  true,
+		},
 	}
 
 	customerID, err := db.ProductQueries.CreateCustomer(ctx, customerParams)
@@ -310,7 +356,6 @@ func CustomerLoginHandler(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
-	fmt.Println(user.Password)
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": "Invalid credentials",
@@ -336,4 +381,36 @@ func CustomerLoginHandler(c *fiber.Ctx) error {
 		},
 		"token": jwtToken,
 	})
+}
+
+// VerifyPhoneHandler godoc
+// @Summary      Customer verify phone
+// @Description  Verify phone
+// @Tags         customers
+// @Accept       json
+// @Produce      json
+// @Param        payload  body      VerifyPhoneRequest  true  "Verify phone request"
+// @Success      200  {object}  map[string]interface{}  "Login successful"
+// @Failure      400  {object}  map[string]string  "Invalid request"
+// @Failure      401  {object}  map[string]string  "Invalid credentials"
+// @Failure      500  {object}  map[string]string  "Internal server error"
+// @Router       /customers/verify-phone [post]
+func VerifyPhoneHandler(c *fiber.Ctx) error {
+	var req VerifyPhoneRequest
+	if err := c.BodyParser(&req); err != nil {
+		c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid request body",
+		})
+	}
+	ctx := context.Background()
+	err := db.ProductQueries.VerifyPhone(ctx, product_db.VerifyPhoneParams{
+		Phone:  req.Phone,
+		ZnsOtp: pgtype.Text{String: req.ZnsOtp, Valid: true},
+	})
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	return c.SendStatus(fiber.StatusOK)
 }

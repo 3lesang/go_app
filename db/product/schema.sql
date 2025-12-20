@@ -134,6 +134,8 @@ CREATE TABLE IF NOT EXISTS customers (
   id BIGSERIAL PRIMARY KEY,
   name TEXT UNIQUE NOT NULL,
   phone TEXT UNIQUE NOT NULL,
+  phone_verified  BOOLEAN DEFAULT FALSE,
+  zns_otp TEXT,
   avatar TEXT,
   email TEXT,
   password TEXT NOT NULL,
