@@ -2891,6 +2891,17 @@ paths:
         in: query
         name: page_size
         type: integer
+      - default: ”
+        description: Status
+        enum:
+        - pending
+        - confirmed
+        - shipping
+        - shipped
+        - canceled
+        in: query
+        name: status
+        type: string
       produces:
       - application/json
       responses:
@@ -2973,6 +2984,42 @@ paths:
               type: string
             type: object
       summary: Get a order
+      tags:
+      - orders
+  /orders/{id}/status:
+    put:
+      consumes:
+      - application/json
+      description: Update status order by id
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update status order
       tags:
       - orders
   /orders/{id}/success:

@@ -51,6 +51,21 @@ func (q *Queries) CountOrders(ctx context.Context) (int64, error) {
 	return count, err
 }
 
+const countOrdersByStatus = `-- name: CountOrdersByStatus :one
+SELECT
+  COUNT(*)
+FROM
+  orders
+WHERE status = $1
+`
+
+func (q *Queries) CountOrdersByStatus(ctx context.Context, status pgtype.Text) (int64, error) {
+	row := q.db.QueryRow(ctx, countOrdersByStatus, status)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createOrder = `-- name: CreateOrder :one
 INSERT INTO
   orders (
@@ -94,6 +109,7 @@ SELECT
   o.total_amount,
   o.discount_amount,
   o.shipping_fee_amount,
+  o.status,
   o.created_at,  
   a.full_name,
   a.phone,
@@ -147,6 +163,7 @@ type GetOrderRow struct {
 	TotalAmount       int32              `json:"total_amount"`
 	DiscountAmount    int32              `json:"discount_amount"`
 	ShippingFeeAmount pgtype.Int4        `json:"shipping_fee_amount"`
+	Status            pgtype.Text        `json:"status"`
 	CreatedAt         pgtype.Timestamptz `json:"created_at"`
 	FullName          pgtype.Text        `json:"full_name"`
 	Phone             pgtype.Text        `json:"phone"`
@@ -164,6 +181,7 @@ func (q *Queries) GetOrder(ctx context.Context, id int64) (GetOrderRow, error) {
 		&i.TotalAmount,
 		&i.DiscountAmount,
 		&i.ShippingFeeAmount,
+		&i.Status,
 		&i.CreatedAt,
 		&i.FullName,
 		&i.Phone,
@@ -181,6 +199,7 @@ SELECT
   o.total_amount,
   o.discount_amount,
   o.shipping_fee_amount,
+  o.status,
   o.created_at,
   a.full_name,
   a.phone,
@@ -242,6 +261,7 @@ type GetOrdersRow struct {
 	TotalAmount       int32              `json:"total_amount"`
 	DiscountAmount    int32              `json:"discount_amount"`
 	ShippingFeeAmount pgtype.Int4        `json:"shipping_fee_amount"`
+	Status            pgtype.Text        `json:"status"`
 	CreatedAt         pgtype.Timestamptz `json:"created_at"`
 	FullName          pgtype.Text        `json:"full_name"`
 	Phone             pgtype.Text        `json:"phone"`
@@ -265,6 +285,7 @@ func (q *Queries) GetOrders(ctx context.Context, arg GetOrdersParams) ([]GetOrde
 			&i.TotalAmount,
 			&i.DiscountAmount,
 			&i.ShippingFeeAmount,
+			&i.Status,
 			&i.CreatedAt,
 			&i.FullName,
 			&i.Phone,
@@ -280,4 +301,133 @@ func (q *Queries) GetOrders(ctx context.Context, arg GetOrdersParams) ([]GetOrde
 		return nil, err
 	}
 	return items, nil
+}
+
+const getOrdersByStatus = `-- name: GetOrdersByStatus :many
+SELECT
+  o.id,
+  o.code,
+  o.total_amount,
+  o.discount_amount,
+  o.shipping_fee_amount,
+  o.status,
+  o.created_at,
+  a.full_name,
+  a.phone,
+  a.address_line,
+  a.email,
+  (
+    SELECT COALESCE(
+      json_agg(
+        json_build_object(
+          'id', oi.id,
+          'product_id', p.id,
+          'product_sku', p.sku,
+          'variant_sku', v.sku,
+          'name', p.name,
+          'quantity', oi.quantity,
+          'sale_price', oi.sale_price,
+          'options', (
+            SELECT COALESCE(
+              json_agg(
+                json_build_object(
+                  'option', o.name,
+                  'value', ov.name
+                )
+              ),
+              '[]'::json
+            )
+            FROM variant_options vo
+            LEFT JOIN options o ON o.id = vo.option_id
+            LEFT JOIN option_values ov ON ov.id = vo.option_value_id 
+            WHERE vo.variant_id = oi.variant_id        
+          )
+        )
+      ) FILTER (WHERE oi.id IS NOT NULL),
+      '[]'::json
+    )
+    FROM order_items oi
+    LEFT JOIN products p ON p.id = oi.product_id
+    LEFT JOIN variants v ON v.id = oi.variant_id
+    WHERE oi.order_id = o.id
+  ) AS items
+FROM
+  orders o
+  LEFT JOIN addresses a ON o.shipping_address_id = a.id
+WHERE o.status = $3
+ORDER BY o.id DESC
+LIMIT
+  $1
+OFFSET
+  $2
+`
+
+type GetOrdersByStatusParams struct {
+	Limit  int32       `json:"limit"`
+	Offset int32       `json:"offset"`
+	Status pgtype.Text `json:"status"`
+}
+
+type GetOrdersByStatusRow struct {
+	ID                int64              `json:"id"`
+	Code              string             `json:"code"`
+	TotalAmount       int32              `json:"total_amount"`
+	DiscountAmount    int32              `json:"discount_amount"`
+	ShippingFeeAmount pgtype.Int4        `json:"shipping_fee_amount"`
+	Status            pgtype.Text        `json:"status"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	FullName          pgtype.Text        `json:"full_name"`
+	Phone             pgtype.Text        `json:"phone"`
+	AddressLine       pgtype.Text        `json:"address_line"`
+	Email             pgtype.Text        `json:"email"`
+	Items             interface{}        `json:"items"`
+}
+
+func (q *Queries) GetOrdersByStatus(ctx context.Context, arg GetOrdersByStatusParams) ([]GetOrdersByStatusRow, error) {
+	rows, err := q.db.Query(ctx, getOrdersByStatus, arg.Limit, arg.Offset, arg.Status)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetOrdersByStatusRow
+	for rows.Next() {
+		var i GetOrdersByStatusRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Code,
+			&i.TotalAmount,
+			&i.DiscountAmount,
+			&i.ShippingFeeAmount,
+			&i.Status,
+			&i.CreatedAt,
+			&i.FullName,
+			&i.Phone,
+			&i.AddressLine,
+			&i.Email,
+			&i.Items,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updateOrder = `-- name: UpdateOrder :exec
+UPDATE orders
+SET status = $2
+WHERE id = $1
+`
+
+type UpdateOrderParams struct {
+	ID     int64       `json:"id"`
+	Status pgtype.Text `json:"status"`
+}
+
+func (q *Queries) UpdateOrder(ctx context.Context, arg UpdateOrderParams) error {
+	_, err := q.db.Exec(ctx, updateOrder, arg.ID, arg.Status)
+	return err
 }

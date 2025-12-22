@@ -22,14 +22,46 @@ import (
 // @Produce      json
 // @Param        page      query     int     false  "Page number"  default(1)
 // @Param        page_size query     int     false  "Page size"    default(10)
+// @Param        status query     string     false  "Status" Enums(pending, confirmed, shipping, shipped, canceled)    default(”)
 // @Success      200  {object}  PaginatedResponse[any]
 // @Router       /orders [get]
 func GetOrdersHandler(c *fiber.Ctx) error {
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	pageSize, _ := strconv.Atoi(c.Query("page_size", "10"))
+	status := c.Query("status", "")
+
 	offset := (page - 1) * pageSize
 
 	ctx := context.Background()
+	if len(status) > 0 {
+		result, err := db.ProductQueries.GetOrdersByStatus(ctx, product_db.GetOrdersByStatusParams{
+			Limit:  int32(pageSize),
+			Offset: int32(offset),
+			Status: pgtype.Text{String: status, Valid: true},
+		})
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		}
+		total, err := db.ProductQueries.CountOrdersByStatus(ctx, pgtype.Text{String: status, Valid: true})
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		}
+
+		totalPages := int(math.Ceil(float64(total) / float64(pageSize)))
+
+		return c.JSON(PaginatedResponse[product_db.GetOrdersByStatusRow]{
+			Page:       page,
+			PageSize:   pageSize,
+			TotalItems: total,
+			TotalPages: totalPages,
+			Data:       result,
+		})
+	}
+
 	result, err := db.ProductQueries.GetOrders(ctx, product_db.GetOrdersParams{
 		Limit:  int32(pageSize),
 		Offset: int32(offset),
@@ -210,6 +242,53 @@ func CreateOrderHandler(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"id": orderID,
 	})
+}
+
+// UpdateOrderStatusHandler godoc
+// @Summary      Update status order
+// @Description  Update status order by id
+// @Tags         orders
+// @Security BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "id"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /orders/{id}/status [put]
+func UpdateOrderStatusHandler(c *fiber.Ctx) error {
+	param := c.Params("id")
+	id, err := strconv.ParseInt(param, 10, 64)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid param",
+		})
+	}
+	var req UpdateOrderRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+	}
+	validate := validator.New()
+	if err := validate.Struct(req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	ctx := context.Background()
+	if err := db.ProductQueries.UpdateOrder(ctx, product_db.UpdateOrderParams{
+		ID: id,
+		Status: pgtype.Text{
+			String: req.Status,
+			Valid:  true,
+		},
+	}); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	return c.SendStatus(fiber.StatusOK)
 }
 
 // DeleteOrdersHandler godoc

@@ -30,6 +30,10 @@ type CreateOrderRequest struct {
 	Items             []CreateOrderItems `json:"items"`
 }
 
+type UpdateOrderRequest struct {
+	Status string `json:"status"`
+}
+
 type DeleteOrdersRequest struct {
 	IDs []int64 `json:"ids"`
 }

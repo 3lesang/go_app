@@ -85,6 +85,8 @@ func Init(app *fiber.App) {
 	orderGroup.Use(jwtware.New(jwtware.Config{
 		SigningKey: jwtware.SigningKey{Key: []byte("jwt")},
 	}))
+
+	orderGroup.Put("/:id/status", order.UpdateOrderStatusHandler)
 	orderGroup.Delete("/", order.DeleteOrdersHandler)
 
 	reviewGroup := v1.Group("/reviews")
