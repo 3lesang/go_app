@@ -5770,6 +5770,9 @@ const docTemplate = `{
                 "address_line": {
                     "type": "string"
                 },
+                "email": {
+                    "type": "string"
+                },
                 "full_name": {
                     "type": "string"
                 },
@@ -5809,6 +5812,9 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/order.CreateOrderItems"
                     }
+                },
+                "shipping_fee_amount": {
+                    "type": "integer"
                 },
                 "total_amount": {
                     "type": "integer"

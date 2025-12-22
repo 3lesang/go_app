@@ -41,15 +41,15 @@ RETURNING id
 `
 
 type CreateDiscountParams struct {
-	Title            string           `json:"title"`
-	Description      pgtype.Text      `json:"description"`
-	Code             pgtype.Text      `json:"code"`
-	DiscountType     string           `json:"discount_type"`
-	Status           string           `json:"status"`
-	UsageLimit       pgtype.Int4      `json:"usage_limit"`
-	PerCustomerLimit pgtype.Int4      `json:"per_customer_limit"`
-	StartsAt         pgtype.Timestamp `json:"starts_at"`
-	EndsAt           pgtype.Timestamp `json:"ends_at"`
+	Title            string             `json:"title"`
+	Description      pgtype.Text        `json:"description"`
+	Code             pgtype.Text        `json:"code"`
+	DiscountType     string             `json:"discount_type"`
+	Status           string             `json:"status"`
+	UsageLimit       pgtype.Int4        `json:"usage_limit"`
+	PerCustomerLimit pgtype.Int4        `json:"per_customer_limit"`
+	StartsAt         pgtype.Timestamptz `json:"starts_at"`
+	EndsAt           pgtype.Timestamptz `json:"ends_at"`
 }
 
 func (q *Queries) CreateDiscount(ctx context.Context, arg CreateDiscountParams) (int64, error) {
@@ -80,16 +80,16 @@ WHERE code = $1
 `
 
 type GetDiscountByCodeRow struct {
-	ID               int64            `json:"id"`
-	Title            string           `json:"title"`
-	Description      pgtype.Text      `json:"description"`
-	Code             pgtype.Text      `json:"code"`
-	DiscountType     string           `json:"discount_type"`
-	Status           string           `json:"status"`
-	UsageLimit       pgtype.Int4      `json:"usage_limit"`
-	PerCustomerLimit pgtype.Int4      `json:"per_customer_limit"`
-	StartsAt         pgtype.Timestamp `json:"starts_at"`
-	EndsAt           pgtype.Timestamp `json:"ends_at"`
+	ID               int64              `json:"id"`
+	Title            string             `json:"title"`
+	Description      pgtype.Text        `json:"description"`
+	Code             pgtype.Text        `json:"code"`
+	DiscountType     string             `json:"discount_type"`
+	Status           string             `json:"status"`
+	UsageLimit       pgtype.Int4        `json:"usage_limit"`
+	PerCustomerLimit pgtype.Int4        `json:"per_customer_limit"`
+	StartsAt         pgtype.Timestamptz `json:"starts_at"`
+	EndsAt           pgtype.Timestamptz `json:"ends_at"`
 }
 
 func (q *Queries) GetDiscountByCode(ctx context.Context, code pgtype.Text) (GetDiscountByCodeRow, error) {
@@ -117,16 +117,16 @@ WHERE id = $1
 `
 
 type GetDiscountByIDRow struct {
-	ID               int64            `json:"id"`
-	Title            string           `json:"title"`
-	Description      pgtype.Text      `json:"description"`
-	Code             pgtype.Text      `json:"code"`
-	DiscountType     string           `json:"discount_type"`
-	Status           string           `json:"status"`
-	UsageLimit       pgtype.Int4      `json:"usage_limit"`
-	PerCustomerLimit pgtype.Int4      `json:"per_customer_limit"`
-	StartsAt         pgtype.Timestamp `json:"starts_at"`
-	EndsAt           pgtype.Timestamp `json:"ends_at"`
+	ID               int64              `json:"id"`
+	Title            string             `json:"title"`
+	Description      pgtype.Text        `json:"description"`
+	Code             pgtype.Text        `json:"code"`
+	DiscountType     string             `json:"discount_type"`
+	Status           string             `json:"status"`
+	UsageLimit       pgtype.Int4        `json:"usage_limit"`
+	PerCustomerLimit pgtype.Int4        `json:"per_customer_limit"`
+	StartsAt         pgtype.Timestamptz `json:"starts_at"`
+	EndsAt           pgtype.Timestamptz `json:"ends_at"`
 }
 
 func (q *Queries) GetDiscountByID(ctx context.Context, id int64) (GetDiscountByIDRow, error) {
@@ -180,19 +180,19 @@ LIMIT 1
 `
 
 type GetDiscountWithRelationsRow struct {
-	ID               int64            `json:"id"`
-	Title            string           `json:"title"`
-	Description      pgtype.Text      `json:"description"`
-	Code             pgtype.Text      `json:"code"`
-	DiscountType     string           `json:"discount_type"`
-	Status           string           `json:"status"`
-	UsageLimit       pgtype.Int4      `json:"usage_limit"`
-	PerCustomerLimit pgtype.Int4      `json:"per_customer_limit"`
-	StartsAt         pgtype.Timestamp `json:"starts_at"`
-	EndsAt           pgtype.Timestamp `json:"ends_at"`
-	Conditions       interface{}      `json:"conditions"`
-	Effects          interface{}      `json:"effects"`
-	Targets          interface{}      `json:"targets"`
+	ID               int64              `json:"id"`
+	Title            string             `json:"title"`
+	Description      pgtype.Text        `json:"description"`
+	Code             pgtype.Text        `json:"code"`
+	DiscountType     string             `json:"discount_type"`
+	Status           string             `json:"status"`
+	UsageLimit       pgtype.Int4        `json:"usage_limit"`
+	PerCustomerLimit pgtype.Int4        `json:"per_customer_limit"`
+	StartsAt         pgtype.Timestamptz `json:"starts_at"`
+	EndsAt           pgtype.Timestamptz `json:"ends_at"`
+	Conditions       interface{}        `json:"conditions"`
+	Effects          interface{}        `json:"effects"`
+	Targets          interface{}        `json:"targets"`
 }
 
 func (q *Queries) GetDiscountWithRelations(ctx context.Context, id int64) (GetDiscountWithRelationsRow, error) {
@@ -245,18 +245,18 @@ WHERE
 `
 
 type GetValidDiscountsRow struct {
-	ID               int64            `json:"id"`
-	Title            string           `json:"title"`
-	Description      pgtype.Text      `json:"description"`
-	Code             pgtype.Text      `json:"code"`
-	DiscountType     string           `json:"discount_type"`
-	Status           string           `json:"status"`
-	UsageLimit       pgtype.Int4      `json:"usage_limit"`
-	PerCustomerLimit pgtype.Int4      `json:"per_customer_limit"`
-	StartsAt         pgtype.Timestamp `json:"starts_at"`
-	EndsAt           pgtype.Timestamp `json:"ends_at"`
-	Conditions       interface{}      `json:"conditions"`
-	Effects          interface{}      `json:"effects"`
+	ID               int64              `json:"id"`
+	Title            string             `json:"title"`
+	Description      pgtype.Text        `json:"description"`
+	Code             pgtype.Text        `json:"code"`
+	DiscountType     string             `json:"discount_type"`
+	Status           string             `json:"status"`
+	UsageLimit       pgtype.Int4        `json:"usage_limit"`
+	PerCustomerLimit pgtype.Int4        `json:"per_customer_limit"`
+	StartsAt         pgtype.Timestamptz `json:"starts_at"`
+	EndsAt           pgtype.Timestamptz `json:"ends_at"`
+	Conditions       interface{}        `json:"conditions"`
+	Effects          interface{}        `json:"effects"`
 }
 
 func (q *Queries) GetValidDiscounts(ctx context.Context) ([]GetValidDiscountsRow, error) {
@@ -306,16 +306,16 @@ type ListDiscountsParams struct {
 }
 
 type ListDiscountsRow struct {
-	ID               int64            `json:"id"`
-	Title            string           `json:"title"`
-	Description      pgtype.Text      `json:"description"`
-	Code             pgtype.Text      `json:"code"`
-	DiscountType     string           `json:"discount_type"`
-	Status           string           `json:"status"`
-	UsageLimit       pgtype.Int4      `json:"usage_limit"`
-	PerCustomerLimit pgtype.Int4      `json:"per_customer_limit"`
-	StartsAt         pgtype.Timestamp `json:"starts_at"`
-	EndsAt           pgtype.Timestamp `json:"ends_at"`
+	ID               int64              `json:"id"`
+	Title            string             `json:"title"`
+	Description      pgtype.Text        `json:"description"`
+	Code             pgtype.Text        `json:"code"`
+	DiscountType     string             `json:"discount_type"`
+	Status           string             `json:"status"`
+	UsageLimit       pgtype.Int4        `json:"usage_limit"`
+	PerCustomerLimit pgtype.Int4        `json:"per_customer_limit"`
+	StartsAt         pgtype.Timestamptz `json:"starts_at"`
+	EndsAt           pgtype.Timestamptz `json:"ends_at"`
 }
 
 func (q *Queries) ListDiscounts(ctx context.Context, arg ListDiscountsParams) ([]ListDiscountsRow, error) {
@@ -365,14 +365,14 @@ RETURNING id
 `
 
 type UpdateDiscountParams struct {
-	ID               int64            `json:"id"`
-	Title            string           `json:"title"`
-	Description      pgtype.Text      `json:"description"`
-	Status           string           `json:"status"`
-	UsageLimit       pgtype.Int4      `json:"usage_limit"`
-	PerCustomerLimit pgtype.Int4      `json:"per_customer_limit"`
-	StartsAt         pgtype.Timestamp `json:"starts_at"`
-	EndsAt           pgtype.Timestamp `json:"ends_at"`
+	ID               int64              `json:"id"`
+	Title            string             `json:"title"`
+	Description      pgtype.Text        `json:"description"`
+	Status           string             `json:"status"`
+	UsageLimit       pgtype.Int4        `json:"usage_limit"`
+	PerCustomerLimit pgtype.Int4        `json:"per_customer_limit"`
+	StartsAt         pgtype.Timestamptz `json:"starts_at"`
+	EndsAt           pgtype.Timestamptz `json:"ends_at"`
 }
 
 func (q *Queries) UpdateDiscount(ctx context.Context, arg UpdateDiscountParams) (int64, error) {

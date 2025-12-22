@@ -18,61 +18,62 @@ type Address struct {
 	Country     pgtype.Text `json:"country"`
 	PostalCode  pgtype.Text `json:"postal_code"`
 	Phone       pgtype.Text `json:"phone"`
+	Email       pgtype.Text `json:"email"`
 }
 
 type Category struct {
-	ID        int64            `json:"id"`
-	Name      string           `json:"name"`
-	Slug      string           `json:"slug"`
-	ParentID  pgtype.Int8      `json:"parent_id"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
-	UpdatedAt pgtype.Timestamp `json:"updated_at"`
+	ID        int64              `json:"id"`
+	Name      string             `json:"name"`
+	Slug      string             `json:"slug"`
+	ParentID  pgtype.Int8        `json:"parent_id"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
 type Collection struct {
-	ID              int64            `json:"id"`
-	Name            string           `json:"name"`
-	Slug            string           `json:"slug"`
-	File            pgtype.Text      `json:"file"`
-	IsFeatured      pgtype.Bool      `json:"is_featured"`
-	MetaTitle       pgtype.Text      `json:"meta_title"`
-	MetaDescription pgtype.Text      `json:"meta_description"`
-	MetaKeywords    pgtype.Text      `json:"meta_keywords"`
-	CanonicalUrl    pgtype.Text      `json:"canonical_url"`
-	OgTitle         pgtype.Text      `json:"og_title"`
-	OgDescription   pgtype.Text      `json:"og_description"`
-	OgImage         pgtype.Text      `json:"og_image"`
-	Layout          pgtype.Text      `json:"layout"`
-	CreatedAt       pgtype.Timestamp `json:"created_at"`
-	UpdatedAt       pgtype.Timestamp `json:"updated_at"`
+	ID              int64              `json:"id"`
+	Name            string             `json:"name"`
+	Slug            string             `json:"slug"`
+	File            pgtype.Text        `json:"file"`
+	IsFeatured      pgtype.Bool        `json:"is_featured"`
+	MetaTitle       pgtype.Text        `json:"meta_title"`
+	MetaDescription pgtype.Text        `json:"meta_description"`
+	MetaKeywords    pgtype.Text        `json:"meta_keywords"`
+	CanonicalUrl    pgtype.Text        `json:"canonical_url"`
+	OgTitle         pgtype.Text        `json:"og_title"`
+	OgDescription   pgtype.Text        `json:"og_description"`
+	OgImage         pgtype.Text        `json:"og_image"`
+	Layout          pgtype.Text        `json:"layout"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
 }
 
 type Customer struct {
-	ID            int64            `json:"id"`
-	Name          string           `json:"name"`
-	Phone         string           `json:"phone"`
-	PhoneVerified pgtype.Bool      `json:"phone_verified"`
-	ZnsOtp        pgtype.Text      `json:"zns_otp"`
-	Avatar        pgtype.Text      `json:"avatar"`
-	Email         pgtype.Text      `json:"email"`
-	Password      string           `json:"password"`
-	CreatedAt     pgtype.Timestamp `json:"created_at"`
+	ID            int64              `json:"id"`
+	Name          string             `json:"name"`
+	Phone         string             `json:"phone"`
+	PhoneVerified pgtype.Bool        `json:"phone_verified"`
+	ZnsOtp        pgtype.Text        `json:"zns_otp"`
+	Avatar        pgtype.Text        `json:"avatar"`
+	Email         pgtype.Text        `json:"email"`
+	Password      string             `json:"password"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 }
 
 type Discount struct {
-	ID               int64            `json:"id"`
-	Title            string           `json:"title"`
-	Description      pgtype.Text      `json:"description"`
-	Code             pgtype.Text      `json:"code"`
-	DiscountType     string           `json:"discount_type"`
-	Status           string           `json:"status"`
-	UsageLimit       pgtype.Int4      `json:"usage_limit"`
-	UsageCount       pgtype.Int4      `json:"usage_count"`
-	PerCustomerLimit pgtype.Int4      `json:"per_customer_limit"`
-	StartsAt         pgtype.Timestamp `json:"starts_at"`
-	EndsAt           pgtype.Timestamp `json:"ends_at"`
-	CreatedAt        pgtype.Timestamp `json:"created_at"`
-	UpdatedAt        pgtype.Timestamp `json:"updated_at"`
+	ID               int64              `json:"id"`
+	Title            string             `json:"title"`
+	Description      pgtype.Text        `json:"description"`
+	Code             pgtype.Text        `json:"code"`
+	DiscountType     string             `json:"discount_type"`
+	Status           string             `json:"status"`
+	UsageLimit       pgtype.Int4        `json:"usage_limit"`
+	UsageCount       pgtype.Int4        `json:"usage_count"`
+	PerCustomerLimit pgtype.Int4        `json:"per_customer_limit"`
+	StartsAt         pgtype.Timestamptz `json:"starts_at"`
+	EndsAt           pgtype.Timestamptz `json:"ends_at"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
 }
 
 type DiscountCondition struct {
@@ -106,9 +107,9 @@ type DiscountTarget struct {
 }
 
 type File struct {
-	ID        int64            `json:"id"`
-	Name      string           `json:"name"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
+	ID        int64              `json:"id"`
+	Name      string             `json:"name"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 type Hotspot struct {
@@ -117,10 +118,10 @@ type Hotspot struct {
 }
 
 type Menu struct {
-	ID        int64            `json:"id"`
-	Name      string           `json:"name"`
-	Position  string           `json:"position"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
+	ID        int64              `json:"id"`
+	Name      string             `json:"name"`
+	Position  string             `json:"position"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 type Option struct {
@@ -138,12 +139,14 @@ type OptionValue struct {
 }
 
 type Order struct {
-	ID                int64            `json:"id"`
-	TotalAmount       int32            `json:"total_amount"`
-	DiscountAmount    int32            `json:"discount_amount"`
-	ShippingAddressID pgtype.Int8      `json:"shipping_address_id"`
-	CreatedAt         pgtype.Timestamp `json:"created_at"`
-	UpdatedAt         pgtype.Timestamp `json:"updated_at"`
+	ID                int64              `json:"id"`
+	Code              string             `json:"code"`
+	TotalAmount       int32              `json:"total_amount"`
+	DiscountAmount    int32              `json:"discount_amount"`
+	ShippingFeeAmount pgtype.Int4        `json:"shipping_fee_amount"`
+	ShippingAddressID pgtype.Int8        `json:"shipping_address_id"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
 }
 
 type OrderItem struct {
@@ -156,35 +159,35 @@ type OrderItem struct {
 }
 
 type Page struct {
-	ID        int64            `json:"id"`
-	Name      string           `json:"name"`
-	Slug      string           `json:"slug"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
+	ID        int64              `json:"id"`
+	Name      string             `json:"name"`
+	Slug      string             `json:"slug"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 type Product struct {
-	ID              int64            `json:"id"`
-	Name            string           `json:"name"`
-	Slug            string           `json:"slug"`
-	OriginPrice     int32            `json:"origin_price"`
-	SalePrice       int32            `json:"sale_price"`
-	Stock           pgtype.Int4      `json:"stock"`
-	Sku             pgtype.Text      `json:"sku"`
-	Weight          pgtype.Int4      `json:"weight"`
-	Long            pgtype.Int4      `json:"long"`
-	Wide            pgtype.Int4      `json:"wide"`
-	High            pgtype.Int4      `json:"high"`
-	MetaTitle       string           `json:"meta_title"`
-	MetaDescription string           `json:"meta_description"`
-	MetaKeywords    string           `json:"meta_keywords"`
-	CanonicalUrl    string           `json:"canonical_url"`
-	OgTitle         string           `json:"og_title"`
-	OgDescription   string           `json:"og_description"`
-	OgImage         string           `json:"og_image"`
-	IsActive        bool             `json:"is_active"`
-	CategoryID      pgtype.Int8      `json:"category_id"`
-	CreatedAt       pgtype.Timestamp `json:"created_at"`
-	UpdatedAt       pgtype.Timestamp `json:"updated_at"`
+	ID              int64              `json:"id"`
+	Name            string             `json:"name"`
+	Slug            string             `json:"slug"`
+	OriginPrice     int32              `json:"origin_price"`
+	SalePrice       int32              `json:"sale_price"`
+	Stock           pgtype.Int4        `json:"stock"`
+	Sku             pgtype.Text        `json:"sku"`
+	Weight          pgtype.Int4        `json:"weight"`
+	Long            pgtype.Int4        `json:"long"`
+	Wide            pgtype.Int4        `json:"wide"`
+	High            pgtype.Int4        `json:"high"`
+	MetaTitle       string             `json:"meta_title"`
+	MetaDescription string             `json:"meta_description"`
+	MetaKeywords    string             `json:"meta_keywords"`
+	CanonicalUrl    string             `json:"canonical_url"`
+	OgTitle         string             `json:"og_title"`
+	OgDescription   string             `json:"og_description"`
+	OgImage         string             `json:"og_image"`
+	IsActive        bool               `json:"is_active"`
+	CategoryID      pgtype.Int8        `json:"category_id"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
 }
 
 type ProductCollection struct {
@@ -213,13 +216,13 @@ type ProductTag struct {
 }
 
 type Review struct {
-	ID         int64            `json:"id"`
-	ProductID  pgtype.Int8      `json:"product_id"`
-	Rating     pgtype.Int4      `json:"rating"`
-	Comment    pgtype.Text      `json:"comment"`
-	HasFile    bool             `json:"has_file"`
-	CustomerID int64            `json:"customer_id"`
-	CreatedAt  pgtype.Timestamp `json:"created_at"`
+	ID         int64              `json:"id"`
+	ProductID  pgtype.Int8        `json:"product_id"`
+	Rating     pgtype.Int4        `json:"rating"`
+	Comment    pgtype.Text        `json:"comment"`
+	HasFile    bool               `json:"has_file"`
+	CustomerID int64              `json:"customer_id"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
 type ReviewFile struct {
@@ -228,19 +231,19 @@ type ReviewFile struct {
 }
 
 type ShippingFee struct {
-	ID             int64            `json:"id"`
-	Name           pgtype.Text      `json:"name"`
-	MinWeight      int32            `json:"min_weight"`
-	MaxWeight      int32            `json:"max_weight"`
-	FeeAmount      int32            `json:"fee_amount"`
-	MinOrderValue  pgtype.Int4      `json:"min_order_value"`
-	FreeShipping   pgtype.Bool      `json:"free_shipping"`
-	ShippingMethod pgtype.Text      `json:"shipping_method"`
-	EffectiveFrom  pgtype.Date      `json:"effective_from"`
-	EffectiveTo    pgtype.Date      `json:"effective_to"`
-	IsActive       pgtype.Bool      `json:"is_active"`
-	CreatedAt      pgtype.Timestamp `json:"created_at"`
-	UpdatedAt      pgtype.Timestamp `json:"updated_at"`
+	ID             int64              `json:"id"`
+	Name           pgtype.Text        `json:"name"`
+	MinWeight      int32              `json:"min_weight"`
+	MaxWeight      int32              `json:"max_weight"`
+	FeeAmount      int32              `json:"fee_amount"`
+	MinOrderValue  pgtype.Int4        `json:"min_order_value"`
+	FreeShipping   pgtype.Bool        `json:"free_shipping"`
+	ShippingMethod pgtype.Text        `json:"shipping_method"`
+	EffectiveFrom  pgtype.Date        `json:"effective_from"`
+	EffectiveTo    pgtype.Date        `json:"effective_to"`
+	IsActive       pgtype.Bool        `json:"is_active"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 }
 
 type Variant struct {

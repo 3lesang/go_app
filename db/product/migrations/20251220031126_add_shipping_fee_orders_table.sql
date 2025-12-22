@@ -1,8 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
-ALTER TABLE customers
-ADD COLUMN phone_verified BOOLEAN DEFAULT FALSE,
-ADD COLUMN zns_otp TEXT;
+ALTER TABLE orders
+ADD COLUMN shipping_fee_amount INT DEFAULT 0;
 -- +goose StatementEnd
 
 -- +goose Down

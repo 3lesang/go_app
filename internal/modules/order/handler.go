@@ -4,9 +4,10 @@ import (
 	"app/internal/db"
 	product_db "app/internal/db/product"
 	"context"
-	"encoding/json"
 	"math"
+	"math/rand"
 	"strconv"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -83,44 +84,7 @@ func GetOrderHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	items, err := db.ProductQueries.GetItemsByOrderID(ctx, id)
-
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
-		})
-	}
-
-	orderItems := make([]OrderItemResponse, 0, len(items))
-	for _, item := range items {
-		var opts map[string]string
-		if len(item.Options) > 0 {
-			if err := json.Unmarshal(item.Options, &opts); err != nil {
-				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-					"error": err.Error(),
-				})
-			}
-		}
-
-		orderItems = append(orderItems, OrderItemResponse{
-			ID:        item.OrderItemID,
-			Quantity:  item.Quantity,
-			SalePrice: item.SalePrice,
-			ProductID: item.ProductID,
-			Name:      item.Name,
-			Slug:      item.Slug,
-			Options:   opts,
-		})
-	}
-
-	return c.Status(fiber.StatusOK).JSON(OrderResponse{
-		FullName:       result.FullName.String,
-		Phone:          result.Phone.String,
-		AddressLine:    result.AddressLine.String,
-		TotalAmount:    result.TotalAmount,
-		DiscountAmount: result.DiscountAmount,
-		Items:          orderItems,
-	})
+	return c.Status(fiber.StatusOK).JSON(result)
 }
 
 // CheckOrderCreatedHandler godoc
@@ -154,6 +118,20 @@ func CheckOrderCreatedHandler(c *fiber.Ctx) error {
 	})
 }
 
+func generateCode() string {
+	datePart := time.Now().Format("20060102")
+
+	const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	rand.Seed(time.Now().UnixNano())
+
+	suffix := make([]byte, 5)
+	for i := range suffix {
+		suffix[i] = letters[rand.Intn(len(letters))]
+	}
+
+	return datePart + string(suffix)
+}
+
 // CreateOrderHandler godoc
 // @Summary      Create a new order
 // @Description  Creates a new order and returns the created order
@@ -184,6 +162,7 @@ func CreateOrderHandler(c *fiber.Ctx) error {
 	ctx := context.Background()
 	addressParams := product_db.CreateAddressParams{
 		FullName:    req.Address.FullName,
+		Email:       pgtype.Text{String: req.Address.Email, Valid: true},
 		Phone:       pgtype.Text{String: req.Address.Phone, Valid: true},
 		AddressLine: req.Address.AddressLine,
 	}
@@ -195,8 +174,13 @@ func CreateOrderHandler(c *fiber.Ctx) error {
 	}
 
 	orderParams := product_db.CreateOrderParams{
+		Code:           generateCode(),
 		TotalAmount:    req.TotalAmount,
 		DiscountAmount: req.DiscountAmount,
+		ShippingFeeAmount: pgtype.Int4{
+			Int32: req.ShippingFeeAmount,
+			Valid: true,
+		},
 		ShippingAddressID: pgtype.Int8{
 			Int64: addressID,
 			Valid: true,
@@ -214,7 +198,9 @@ func CreateOrderHandler(c *fiber.Ctx) error {
 		createOrderItemParams.SalePrices = append(createOrderItemParams.SalePrices, item.SalePrice)
 		createOrderItemParams.OrderIds = append(createOrderItemParams.OrderIds, orderID)
 		createOrderItemParams.ProductIds = append(createOrderItemParams.ProductIds, item.ProductID)
-		createOrderItemParams.VariantIds = append(createOrderItemParams.VariantIds, item.VariantID)
+		if item.VariantID != 0 {
+			createOrderItemParams.VariantIds = append(createOrderItemParams.VariantIds, item.VariantID)
+		}
 	}
 	if err := db.ProductQueries.BulkInsertOrderItems(ctx, createOrderItemParams); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

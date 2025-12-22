@@ -54,24 +54,34 @@ func (q *Queries) CountOrders(ctx context.Context) (int64, error) {
 const createOrder = `-- name: CreateOrder :one
 INSERT INTO
   orders (
+    code,
     total_amount,
     discount_amount,
+    shipping_fee_amount,
     shipping_address_id
   )
 VALUES
-  ($1, $2, $3)
+  ($1, $2, $3, $4, $5)
 RETURNING
   id
 `
 
 type CreateOrderParams struct {
+	Code              string      `json:"code"`
 	TotalAmount       int32       `json:"total_amount"`
 	DiscountAmount    int32       `json:"discount_amount"`
+	ShippingFeeAmount pgtype.Int4 `json:"shipping_fee_amount"`
 	ShippingAddressID pgtype.Int8 `json:"shipping_address_id"`
 }
 
 func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) (int64, error) {
-	row := q.db.QueryRow(ctx, createOrder, arg.TotalAmount, arg.DiscountAmount, arg.ShippingAddressID)
+	row := q.db.QueryRow(ctx, createOrder,
+		arg.Code,
+		arg.TotalAmount,
+		arg.DiscountAmount,
+		arg.ShippingFeeAmount,
+		arg.ShippingAddressID,
+	)
 	var id int64
 	err := row.Scan(&id)
 	return id, err
@@ -79,11 +89,51 @@ func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) (int64
 
 const getOrder = `-- name: GetOrder :one
 SELECT
+  o.id,
+  o.code,
   o.total_amount,
   o.discount_amount,
+  o.shipping_fee_amount,
+  o.created_at,  
   a.full_name,
   a.phone,
-  a.address_line
+  a.address_line,
+  a.email,
+  (
+    SELECT COALESCE(
+      json_agg(
+        json_build_object(
+          'id', oi.id,
+          'product_id', p.id,
+          'product_sku', p.sku,
+          'variant_sku', v.sku,
+          'name', p.name,
+          'quantity', oi.quantity,
+          'sale_price', oi.sale_price,
+          'options', (
+            SELECT COALESCE(
+              json_agg(
+                json_build_object(
+                  'option', o.name,
+                  'value', ov.name
+                )
+              ),
+              '[]'::json
+            )
+            FROM variant_options vo
+            LEFT JOIN options o ON o.id = vo.option_id
+            LEFT JOIN option_values ov ON ov.id = vo.option_value_id 
+            WHERE vo.variant_id = oi.variant_id        
+          )
+        )
+      ) FILTER (WHERE oi.id IS NOT NULL),
+      '[]'::json
+    )
+    FROM order_items oi
+    LEFT JOIN products p ON p.id = oi.product_id
+    LEFT JOIN variants v ON v.id = oi.variant_id
+    WHERE oi.order_id = o.id
+  ) AS items
 FROM
   orders o
   LEFT JOIN addresses a ON o.shipping_address_id = a.id
@@ -92,34 +142,89 @@ WHERE
 `
 
 type GetOrderRow struct {
-	TotalAmount    int32       `json:"total_amount"`
-	DiscountAmount int32       `json:"discount_amount"`
-	FullName       pgtype.Text `json:"full_name"`
-	Phone          pgtype.Text `json:"phone"`
-	AddressLine    pgtype.Text `json:"address_line"`
+	ID                int64              `json:"id"`
+	Code              string             `json:"code"`
+	TotalAmount       int32              `json:"total_amount"`
+	DiscountAmount    int32              `json:"discount_amount"`
+	ShippingFeeAmount pgtype.Int4        `json:"shipping_fee_amount"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	FullName          pgtype.Text        `json:"full_name"`
+	Phone             pgtype.Text        `json:"phone"`
+	AddressLine       pgtype.Text        `json:"address_line"`
+	Email             pgtype.Text        `json:"email"`
+	Items             interface{}        `json:"items"`
 }
 
 func (q *Queries) GetOrder(ctx context.Context, id int64) (GetOrderRow, error) {
 	row := q.db.QueryRow(ctx, getOrder, id)
 	var i GetOrderRow
 	err := row.Scan(
+		&i.ID,
+		&i.Code,
 		&i.TotalAmount,
 		&i.DiscountAmount,
+		&i.ShippingFeeAmount,
+		&i.CreatedAt,
 		&i.FullName,
 		&i.Phone,
 		&i.AddressLine,
+		&i.Email,
+		&i.Items,
 	)
 	return i, err
 }
 
 const getOrders = `-- name: GetOrders :many
 SELECT
-  id,
-  total_amount,
-  discount_amount,
-  created_at
+  o.id,
+  o.code,
+  o.total_amount,
+  o.discount_amount,
+  o.shipping_fee_amount,
+  o.created_at,
+  a.full_name,
+  a.phone,
+  a.address_line,
+  a.email,
+  (
+    SELECT COALESCE(
+      json_agg(
+        json_build_object(
+          'id', oi.id,
+          'product_id', p.id,
+          'product_sku', p.sku,
+          'variant_sku', v.sku,
+          'name', p.name,
+          'quantity', oi.quantity,
+          'sale_price', oi.sale_price,
+          'options', (
+            SELECT COALESCE(
+              json_agg(
+                json_build_object(
+                  'option', o.name,
+                  'value', ov.name
+                )
+              ),
+              '[]'::json
+            )
+            FROM variant_options vo
+            LEFT JOIN options o ON o.id = vo.option_id
+            LEFT JOIN option_values ov ON ov.id = vo.option_value_id 
+            WHERE vo.variant_id = oi.variant_id        
+          )
+        )
+      ) FILTER (WHERE oi.id IS NOT NULL),
+      '[]'::json
+    )
+    FROM order_items oi
+    LEFT JOIN products p ON p.id = oi.product_id
+    LEFT JOIN variants v ON v.id = oi.variant_id
+    WHERE oi.order_id = o.id
+  ) AS items
 FROM
-  orders
+  orders o
+  LEFT JOIN addresses a ON o.shipping_address_id = a.id
+ORDER BY o.id DESC
 LIMIT
   $1
 OFFSET
@@ -132,10 +237,17 @@ type GetOrdersParams struct {
 }
 
 type GetOrdersRow struct {
-	ID             int64            `json:"id"`
-	TotalAmount    int32            `json:"total_amount"`
-	DiscountAmount int32            `json:"discount_amount"`
-	CreatedAt      pgtype.Timestamp `json:"created_at"`
+	ID                int64              `json:"id"`
+	Code              string             `json:"code"`
+	TotalAmount       int32              `json:"total_amount"`
+	DiscountAmount    int32              `json:"discount_amount"`
+	ShippingFeeAmount pgtype.Int4        `json:"shipping_fee_amount"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	FullName          pgtype.Text        `json:"full_name"`
+	Phone             pgtype.Text        `json:"phone"`
+	AddressLine       pgtype.Text        `json:"address_line"`
+	Email             pgtype.Text        `json:"email"`
+	Items             interface{}        `json:"items"`
 }
 
 func (q *Queries) GetOrders(ctx context.Context, arg GetOrdersParams) ([]GetOrdersRow, error) {
@@ -149,9 +261,16 @@ func (q *Queries) GetOrders(ctx context.Context, arg GetOrdersParams) ([]GetOrde
 		var i GetOrdersRow
 		if err := rows.Scan(
 			&i.ID,
+			&i.Code,
 			&i.TotalAmount,
 			&i.DiscountAmount,
+			&i.ShippingFeeAmount,
 			&i.CreatedAt,
+			&i.FullName,
+			&i.Phone,
+			&i.AddressLine,
+			&i.Email,
+			&i.Items,
 		); err != nil {
 			return nil, err
 		}

@@ -8,30 +8,6 @@ type PaginatedResponse[T any] struct {
 	Data       []T   `json:"data"`
 }
 
-type OrdersResponse struct {
-	TotalAmount    int32 `json:"total_amount"`
-	DiscountAmount int32 `json:"discount_amount"`
-}
-
-type OrderItemResponse struct {
-	ID        int64             `json:"id"`
-	Quantity  int32             `json:"quantity"`
-	SalePrice int32             `json:"sale_price"`
-	ProductID int64             `json:"product_id"`
-	Name      string            `json:"name"`
-	Slug      string            `json:"slug"`
-	Options   map[string]string `json:"options"`
-}
-
-type OrderResponse struct {
-	FullName       string              `json:"full_name"`
-	Phone          string              `json:"phone"`
-	AddressLine    string              `json:"address_line"`
-	TotalAmount    int32               `json:"total_amount"`
-	DiscountAmount int32               `json:"discount_amount"`
-	Items          []OrderItemResponse `json:"items"`
-}
-
 type CreateOrderItems struct {
 	Quantity  int32 `json:"quantity"`
 	SalePrice int32 `json:"sale_price"`
@@ -42,14 +18,16 @@ type CreateOrderItems struct {
 type CreateOrderAddress struct {
 	FullName    string `json:"full_name"`
 	Phone       string `json:"phone"`
+	Email       string `json:"email"`
 	AddressLine string `json:"address_line"`
 }
 
 type CreateOrderRequest struct {
-	TotalAmount    int32              `json:"total_amount"`
-	DiscountAmount int32              `json:"discount_amount"`
-	Address        CreateOrderAddress `json:"address"`
-	Items          []CreateOrderItems `json:"items"`
+	TotalAmount       int32              `json:"total_amount"`
+	DiscountAmount    int32              `json:"discount_amount"`
+	ShippingFeeAmount int32              `json:"shipping_fee_amount"`
+	Address           CreateOrderAddress `json:"address"`
+	Items             []CreateOrderItems `json:"items"`
 }
 
 type DeleteOrdersRequest struct {

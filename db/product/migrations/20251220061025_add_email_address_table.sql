@@ -1,8 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
-ALTER TABLE customers
-ADD COLUMN phone_verified BOOLEAN DEFAULT FALSE,
-ADD COLUMN zns_otp TEXT;
+ALTER TABLE addresses
+ADD COLUMN email TEXT;
 -- +goose StatementEnd
 
 -- +goose Down

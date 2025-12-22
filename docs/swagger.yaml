@@ -435,6 +435,8 @@ definitions:
     properties:
       address_line:
         type: string
+      email:
+        type: string
       full_name:
         type: string
       phone:
@@ -461,6 +463,8 @@ definitions:
         items:
           $ref: '#/definitions/order.CreateOrderItems'
         type: array
+      shipping_fee_amount:
+        type: integer
       total_amount:
         type: integer
     type: object

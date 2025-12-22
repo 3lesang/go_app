@@ -13,9 +13,9 @@ import (
 
 const createAddress = `-- name: CreateAddress :one
 INSERT INTO
-  addresses (full_name, phone, address_line)
+  addresses (full_name, phone, email, address_line)
 VALUES
-  ($1, $2, $3)
+  ($1, $2, $3, $4)
 RETURNING
   id
 `
@@ -23,11 +23,17 @@ RETURNING
 type CreateAddressParams struct {
 	FullName    string      `json:"full_name"`
 	Phone       pgtype.Text `json:"phone"`
+	Email       pgtype.Text `json:"email"`
 	AddressLine string      `json:"address_line"`
 }
 
 func (q *Queries) CreateAddress(ctx context.Context, arg CreateAddressParams) (int64, error) {
-	row := q.db.QueryRow(ctx, createAddress, arg.FullName, arg.Phone, arg.AddressLine)
+	row := q.db.QueryRow(ctx, createAddress,
+		arg.FullName,
+		arg.Phone,
+		arg.Email,
+		arg.AddressLine,
+	)
 	var id int64
 	err := row.Scan(&id)
 	return id, err
