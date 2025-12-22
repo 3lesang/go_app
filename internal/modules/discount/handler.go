@@ -47,8 +47,8 @@ func CreateDiscountHandler(c *fiber.Ctx) error {
 			Status:           req.Status,
 			UsageLimit:       pgtype.Int4{Int32: req.UsageLimit, Valid: req.UsageLimit > 0},
 			PerCustomerLimit: pgtype.Int4{Int32: req.PerCustomerLimit, Valid: req.PerCustomerLimit > 0},
-			StartsAt:         pgtype.Timestamp{Time: req.StartsAt, Valid: true},
-			EndsAt:           pgtype.Timestamp{Time: req.EndsAt, Valid: !req.EndsAt.IsZero()},
+			StartsAt:         pgtype.Timestamptz{Time: req.StartsAt, Valid: true},
+			EndsAt:           pgtype.Timestamptz{Time: req.EndsAt, Valid: !req.EndsAt.IsZero()},
 		},
 	)
 	if err != nil {
@@ -200,8 +200,8 @@ func UpdateDiscountHandler(c *fiber.Ctx) error {
 		Status:           req.Status,
 		UsageLimit:       pgtype.Int4{Int32: req.UsageLimit, Valid: req.UsageLimit > 0},
 		PerCustomerLimit: pgtype.Int4{Int32: req.PerCustomerLimit, Valid: req.PerCustomerLimit > 0},
-		StartsAt:         pgtype.Timestamp{Time: req.StartsAt, Valid: true},
-		EndsAt:           pgtype.Timestamp{Time: req.EndsAt, Valid: !req.EndsAt.IsZero()},
+		StartsAt:         pgtype.Timestamptz{Time: req.StartsAt, Valid: true},
+		EndsAt:           pgtype.Timestamptz{Time: req.EndsAt, Valid: !req.EndsAt.IsZero()},
 	})
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
