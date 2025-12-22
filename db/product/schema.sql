@@ -108,6 +108,7 @@ CREATE TABLE IF NOT EXISTS orders (
   shipping_fee_amount INT DEFAULT 0,
   shipping_address_id BIGINT REFERENCES addresses (id) ON DELETE SET NULL,
   status VARCHAR(50) DEFAULT 'pending', -- pending, confirmed, shipping, shipped, cancelled
+  cancel_reason TEXT DEFAULT '',
   created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );

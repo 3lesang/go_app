@@ -418,16 +418,18 @@ func (q *Queries) GetOrdersByStatus(ctx context.Context, arg GetOrdersByStatusPa
 
 const updateOrder = `-- name: UpdateOrder :exec
 UPDATE orders
-SET status = $2
+SET status = $2,
+    cancel_reason = $3
 WHERE id = $1
 `
 
 type UpdateOrderParams struct {
-	ID     int64       `json:"id"`
-	Status pgtype.Text `json:"status"`
+	ID           int64       `json:"id"`
+	Status       pgtype.Text `json:"status"`
+	CancelReason pgtype.Text `json:"cancel_reason"`
 }
 
 func (q *Queries) UpdateOrder(ctx context.Context, arg UpdateOrderParams) error {
-	_, err := q.db.Exec(ctx, updateOrder, arg.ID, arg.Status)
+	_, err := q.db.Exec(ctx, updateOrder, arg.ID, arg.Status, arg.CancelReason)
 	return err
 }

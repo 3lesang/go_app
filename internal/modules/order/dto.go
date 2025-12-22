@@ -31,7 +31,8 @@ type CreateOrderRequest struct {
 }
 
 type UpdateOrderRequest struct {
-	Status string `json:"status"`
+	Status       string `json:"status"`
+	CancelReason string `json:"cancel_reason"`
 }
 
 type DeleteOrdersRequest struct {

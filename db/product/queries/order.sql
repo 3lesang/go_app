@@ -204,7 +204,8 @@ RETURNING
 
 -- name: UpdateOrder :exec
 UPDATE orders
-SET status = $2
+SET status = $2,
+    cancel_reason = $3
 WHERE id = $1;
 
 -- name: BulkDeleteOrders :exec

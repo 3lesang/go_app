@@ -146,6 +146,7 @@ type Order struct {
 	ShippingFeeAmount pgtype.Int4        `json:"shipping_fee_amount"`
 	ShippingAddressID pgtype.Int8        `json:"shipping_address_id"`
 	Status            pgtype.Text        `json:"status"`
+	CancelReason      pgtype.Text        `json:"cancel_reason"`
 	CreatedAt         pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
 }

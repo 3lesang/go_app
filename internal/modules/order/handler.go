@@ -283,6 +283,7 @@ func UpdateOrderStatusHandler(c *fiber.Ctx) error {
 			String: req.Status,
 			Valid:  true,
 		},
+		CancelReason: pgtype.Text{String: req.CancelReason, Valid: true},
 	}); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
