@@ -1284,6 +1284,17 @@ paths:
       - collections
     get:
       description: Returns a list of collections
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
       produces:
       - application/json
       responses:
@@ -1519,6 +1530,38 @@ paths:
       summary: Get a collection
       tags:
       - collections
+  /count-orders:
+    get:
+      description: Returns count of status order
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get count status order
+      tags:
+      - orders
   /customers:
     delete:
       consumes:

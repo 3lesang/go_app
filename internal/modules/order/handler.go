@@ -89,6 +89,27 @@ func GetOrdersHandler(c *fiber.Ctx) error {
 	})
 }
 
+// CountOrderHandler godoc
+// @Summary      Get count status order
+// @Description  Returns count of status order
+// @Tags         orders
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /count-orders [get]
+func CountOrderHandler(c *fiber.Ctx) error {
+	ctx := context.Background()
+	result, err := db.ProductQueries.CountStatusOrder(ctx)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(result)
+}
+
 // GetOrderHandler godoc
 // @Summary      Get a order
 // @Description  Returns a order by ID

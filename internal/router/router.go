@@ -76,8 +76,11 @@ func Init(app *fiber.App) {
 	collectionGroup.Put("/:id", collection.UpdateCollectionHandler)
 	collectionGroup.Delete("/", collection.DeleteCollectionsHandler)
 
+	v1.Get("/count-orders", order.CountOrderHandler)
+
 	orderGroup := v1.Group("/orders")
 	orderGroup.Get("/", order.GetOrdersHandler)
+
 	orderGroup.Get("/:id", order.GetOrderHandler)
 	orderGroup.Get("/:id/success", order.CheckOrderCreatedHandler)
 	orderGroup.Post("/", order.CreateOrderHandler)

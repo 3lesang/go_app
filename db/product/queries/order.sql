@@ -4,6 +4,16 @@ SELECT
 FROM
   orders;
 
+-- name: CountStatusOrder :one
+SELECT
+  SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending_count,
+  SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) AS confirmed_count,
+  SUM(CASE WHEN status = 'shipping' THEN 1 ELSE 0 END) AS shipping_count,
+  SUM(CASE WHEN status = 'shipped' THEN 1 ELSE 0 END) AS shipped_count,
+  SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) AS cancelled_count
+FROM orders
+LIMIT 1;
+
 -- name: GetOrders :many
 SELECT
   o.id,

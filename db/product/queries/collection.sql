@@ -1,13 +1,22 @@
+-- name: CountCollections :one
+SELECT
+  COUNT(*)
+FROM
+  collections;
+
 -- name: GetCollections :many
 SELECT
   id,
   name,
   file,
-  slug
+  slug,
+  created_at
 FROM
   collections
 ORDER BY
-  id;
+  id
+LIMIT $1
+OFFSET $2;
 
 -- name: GetCollection :one
 SELECT

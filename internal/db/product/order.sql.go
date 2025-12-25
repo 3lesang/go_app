@@ -66,6 +66,37 @@ func (q *Queries) CountOrdersByStatus(ctx context.Context, status pgtype.Text) (
 	return count, err
 }
 
+const countStatusOrder = `-- name: CountStatusOrder :one
+SELECT
+  SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending_count,
+  SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) AS confirmed_count,
+  SUM(CASE WHEN status = 'shipping' THEN 1 ELSE 0 END) AS shipping_count,
+  SUM(CASE WHEN status = 'shipped' THEN 1 ELSE 0 END) AS shipped_count,
+  SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) AS cancelled_count
+FROM orders
+`
+
+type CountStatusOrderRow struct {
+	PendingCount   int64 `json:"pending_count"`
+	ConfirmedCount int64 `json:"confirmed_count"`
+	ShippingCount  int64 `json:"shipping_count"`
+	ShippedCount   int64 `json:"shipped_count"`
+	CancelledCount int64 `json:"cancelled_count"`
+}
+
+func (q *Queries) CountStatusOrder(ctx context.Context) (CountStatusOrderRow, error) {
+	row := q.db.QueryRow(ctx, countStatusOrder)
+	var i CountStatusOrderRow
+	err := row.Scan(
+		&i.PendingCount,
+		&i.ConfirmedCount,
+		&i.ShippingCount,
+		&i.ShippedCount,
+		&i.CancelledCount,
+	)
+	return i, err
+}
+
 const createOrder = `-- name: CreateOrder :one
 INSERT INTO
   orders (

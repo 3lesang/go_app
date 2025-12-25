@@ -22,6 +22,20 @@ func (q *Queries) BulkDeleteCollections(ctx context.Context, dollar_1 []int64) e
 	return err
 }
 
+const countCollections = `-- name: CountCollections :one
+SELECT
+  COUNT(*)
+FROM
+  collections
+`
+
+func (q *Queries) CountCollections(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, countCollections)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createCollection = `-- name: CreateCollection :one
 INSERT INTO
   collections (
@@ -108,22 +122,31 @@ SELECT
   id,
   name,
   file,
-  slug
+  slug,
+  created_at
 FROM
   collections
 ORDER BY
   id
+LIMIT $1
+OFFSET $2
 `
 
-type GetCollectionsRow struct {
-	ID   int64       `json:"id"`
-	Name string      `json:"name"`
-	File pgtype.Text `json:"file"`
-	Slug string      `json:"slug"`
+type GetCollectionsParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
 }
 
-func (q *Queries) GetCollections(ctx context.Context) ([]GetCollectionsRow, error) {
-	rows, err := q.db.Query(ctx, getCollections)
+type GetCollectionsRow struct {
+	ID        int64              `json:"id"`
+	Name      string             `json:"name"`
+	File      pgtype.Text        `json:"file"`
+	Slug      string             `json:"slug"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) GetCollections(ctx context.Context, arg GetCollectionsParams) ([]GetCollectionsRow, error) {
+	rows, err := q.db.Query(ctx, getCollections, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -136,6 +159,7 @@ func (q *Queries) GetCollections(ctx context.Context) ([]GetCollectionsRow, erro
 			&i.Name,
 			&i.File,
 			&i.Slug,
+			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}
