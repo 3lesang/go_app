@@ -127,7 +127,7 @@ SELECT
 FROM
   collections
 ORDER BY
-  id
+  created_at DESC
 LIMIT $1
 OFFSET $2
 `

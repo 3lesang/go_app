@@ -74,6 +74,7 @@ SELECT
   SUM(CASE WHEN status = 'shipped' THEN 1 ELSE 0 END) AS shipped_count,
   SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) AS cancelled_count
 FROM orders
+LIMIT 1
 `
 
 type CountStatusOrderRow struct {
